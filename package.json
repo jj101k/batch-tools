@@ -1,0 +1,19 @@
+{
+  "name": "batch-tools",
+  "version": "1.0.0",
+  "description": "Tools for doing batch operations in Javascript/Typescript",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jj101k/batch-tools.git"
+  },
+  "author": "Jim Driscoll",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/jj101k/batch-tools/issues"
+  },
+  "homepage": "https://github.com/jj101k/batch-tools#readme"
+}
