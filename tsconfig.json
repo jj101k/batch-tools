@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "incremental": true,
+        "target": "es2020",
+        "module": "commonjs",
+        "allowJs": false,
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "declaration": true,
+        "lib": [
+            "es2020", "DOM"
+        ],
+        "outDir": "dist/",
+        "baseUrl": ".",
+        "paths": {
+            "promise-stateful-rest": ["."]
+        },
+        "experimentalDecorators": true
+    },
+    "include": ["src/", "index.ts"]
+}

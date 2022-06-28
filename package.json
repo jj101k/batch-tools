@@ -4,6 +4,8 @@
   "description": "Tools for doing batch operations in Javascript/Typescript",
   "main": "index.js",
   "scripts": {
+    "build": "tsc",
+    "prepare": "rm -rf dist && tsc && webpack ./dist/webpack.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -15,5 +17,14 @@
   "bugs": {
     "url": "https://github.com/jj101k/batch-tools/issues"
   },
-  "homepage": "https://github.com/jj101k/batch-tools#readme"
+  "homepage": "https://github.com/jj101k/batch-tools#readme",
+  "devDependencies": {
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^16.10.3",
+    "mocha": "^9.1.2",
+    "ts-node": "^10.3.0",
+    "typescript": "^4.4.3",
+    "webpack": "^5.69.1",
+    "webpack-cli": "^4.9.2"
+  }
 }
