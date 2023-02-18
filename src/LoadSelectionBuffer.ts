@@ -22,6 +22,15 @@ export class LoadSelectionBuffer<I> extends Promise<I[]> {
     private resolved = false
 
     /**
+     * @throws
+     */
+    private assertIsWritable() {
+        if (this.resolved) {
+            throw new Error(`Selection can no longer be modified after being resolved`)
+        }
+    }
+
+    /**
      *
      */
     private resolveOnce() {
@@ -55,11 +64,11 @@ export class LoadSelectionBuffer<I> extends Promise<I[]> {
      * Adds an item to the batch.
      *
      * @param item
+     * @throws
+     * @returns
      */
     add(item: I) {
-        if (this.resolved) {
-            throw new Error(`Object can no longer be loaded after being resolved`)
-        }
+        this.assertIsWritable()
         this.items.add(item)
         if (this.items.size >= this.bufferCapacity) {
             this.resolveOnce()
@@ -70,9 +79,11 @@ export class LoadSelectionBuffer<I> extends Promise<I[]> {
     /**
      *
      * @param item
+     * @throws
      * @returns
      */
     delete(item: I) {
+        this.assertIsWritable()
         return this.items.delete(item)
     }
 }
