@@ -1,54 +1,46 @@
-/**
- * This is a promise used by a load buffer - always returns a map
- */
-export type LoadBufferPromise<K, T> = Promise<Map<K, T>>
+import { LoadSelectionBuffer } from "./LoadSelectionBuffer"
 
 /**
- * This provides a loading buffer which will hang around for `delayMs` milliseconds
- * before invoking `then` with the accumulated keys
+ * This provides a loading buffer which will hang around for `delayMs`
+ * milliseconds before resolving with the result. This is intended for
+ * multiplexing what would otherwise be many separate calls together.
+ *
+ * This wraps the underlying promise
  */
-
-export class LoadBuffer<K, T> {
+export abstract class LoadBuffer<K, R, I = K> implements Promise<Map<K, R>> {
     /**
      *
      */
-    private readonly promise: LoadBufferPromise<K, T>
+    protected promise: Promise<Map<K, R>>
 
-    /**
-     *
-     */
-    private toLoad: K[] = []
-
-    /**
-     *
-     * @param delayMs
-     * @returns
-     */
-    private async init(delayMs: number) {
-        await new Promise(resolve => setTimeout(resolve, delayMs))
-        return this.toLoad
+    get [Symbol.toStringTag]() {
+        return "LoadBuffer"
     }
+
+    public readonly catch: Promise<Map<K, R>>["catch"]
+
+    public readonly finally: Promise<Map<K, R>>["finally"]
+
+    public readonly then: Promise<Map<K, R>>["then"]
 
     /**
      *
      * @param then
-     * @param delayMs
+     * @param loadBuffer
      */
-    constructor(
-        then: (keys: K[]) => LoadBufferPromise<K, T>,
-        delayMs: number = 50
-    ) {
-        this.promise = this.init(delayMs).then(then)
+    constructor(then: (items: I[]) => Promise<Map<K, R>>, protected loadBuffer = new LoadSelectionBuffer<I>()) {
+        this.promise = loadBuffer.then(then)
+
+        this.catch = this.promise.catch
+        this.finally = this.promise.finally
+        this.then = this.promise.then
     }
 
     /**
-     * Adds a key to the batch.
+     * Adds an item to the batch.
      *
-     * @param key
-     * @returns A promise resolving when the batch is complete
+     * @param item
+     * @returns A promise resolving with the item's resultant value
      */
-    push(key: K) {
-        this.toLoad.push(key)
-        return this.promise
-    }
+    abstract include(item: I): Promise<R | undefined>
 }
