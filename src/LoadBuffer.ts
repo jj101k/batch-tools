@@ -26,10 +26,10 @@ export abstract class LoadBuffer<K, R, I = K> implements Promise<Map<K, R>> {
     /**
      *
      * @param then
-     * @param loadBuffer
+     * @param loadSelectionBuffer
      */
-    constructor(then: (items: I[]) => Promise<Map<K, R>>, protected loadBuffer = new LoadSelectionBuffer<I>()) {
-        this.promise = loadBuffer.then(then)
+    constructor(then: (items: I[]) => Promise<Map<K, R>>, protected loadSelectionBuffer = new LoadSelectionBuffer<I>()) {
+        this.promise = loadSelectionBuffer.then(then)
 
         this.catch = this.promise.catch
         this.finally = this.promise.finally
@@ -40,7 +40,18 @@ export abstract class LoadBuffer<K, R, I = K> implements Promise<Map<K, R>> {
      * Adds an item to the batch.
      *
      * @param item
-     * @returns A promise resolving with the item's resultant value
+     * @returns A promise resolving with the item's resultant value or, if
+     * removed, undefined.
      */
     abstract include(item: I): Promise<R | undefined>
+
+    /**
+     * Removes an item from the batch.
+     *
+     * @param item
+     * @returns
+     */
+    remove(item: I): boolean {
+        return this.loadSelectionBuffer.delete(item)
+    }
 }

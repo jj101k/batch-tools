@@ -27,7 +27,7 @@ export class LoadBufferAny<I, K extends string | number, R> extends LoadBuffer<K
      * @returns A promise resolving with the item's resultant value
      */
     include(item: I) {
-        this.loadBuffer.add(item)
+        this.loadSelectionBuffer.add(item)
         const k = this.getKey(item)
         return this.promise.then(v => v.get(k))
     }

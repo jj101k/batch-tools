@@ -66,4 +66,13 @@ export class LoadSelectionBuffer<I> extends Promise<I[]> {
         }
         return this
     }
+
+    /**
+     *
+     * @param item
+     * @returns
+     */
+    delete(item: I) {
+        return this.items.delete(item)
+    }
 }

@@ -13,7 +13,7 @@ export class LoadBufferPrimitive<K extends string | number, R> extends LoadBuffe
      * @returns A promise resolving with the item's resultant value
      */
     include(item: K) {
-        this.loadBuffer.add(item)
+        this.loadSelectionBuffer.add(item)
         return this.promise.then(v => v.get(item))
     }
 }
