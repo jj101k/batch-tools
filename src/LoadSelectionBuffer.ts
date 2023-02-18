@@ -11,6 +11,11 @@ export class LoadSelectionBuffer<I> extends Promise<I[]> {
     /**
      *
      */
+    private aborted = false
+
+    /**
+     *
+     */
     private resolve: (value: I[]) => void = (value) => {
         // Can't happen unless someone messes with the Promise constructor
         throw new Error("Internal error: resolved too early")
@@ -30,7 +35,9 @@ export class LoadSelectionBuffer<I> extends Promise<I[]> {
      * @throws
      */
     private assertIsWritable() {
-        if (this.resolved) {
+        if (this.aborted) {
+            throw new Error(`Selection can no longer be modified after being aborted`)
+        } else if (this.resolved) {
             throw new Error(`Selection can no longer be modified after being resolved`)
         }
     }
@@ -67,6 +74,23 @@ export class LoadSelectionBuffer<I> extends Promise<I[]> {
             this.resolve = resolve
             this.timeout = setTimeout(() => this.resolveOnce(), delayMs)
         })
+    }
+
+    /**
+     * @throws
+     */
+    abort() {
+        if(this.resolved) {
+            throw new Error("Cannot abort - already resolved")
+        }
+        if(!this.aborted) {
+            this.aborted = true
+            if(this.timeout) {
+                clearTimeout(this.timeout)
+                this.timeout = null
+            }
+            this.items.clear()
+        }
     }
 
     /**
