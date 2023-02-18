@@ -22,6 +22,11 @@ export class LoadSelectionBuffer<I> extends Promise<I[]> {
     private resolved = false
 
     /**
+     *
+     */
+    private timeout: NodeJS.Timeout | null = null
+
+    /**
      * @throws
      */
     private assertIsWritable() {
@@ -36,6 +41,10 @@ export class LoadSelectionBuffer<I> extends Promise<I[]> {
     private resolveOnce() {
         if (!this.resolved) {
             this.resolved = true
+            if(this.timeout) {
+                clearTimeout(this.timeout)
+                this.timeout = null
+            }
             this.resolve([...this.items.values()])
         }
     }
@@ -56,7 +65,7 @@ export class LoadSelectionBuffer<I> extends Promise<I[]> {
     ) {
         super((resolve) => {
             this.resolve = resolve
-            setTimeout(() => this.resolveOnce(), delayMs)
+            this.timeout = setTimeout(() => this.resolveOnce(), delayMs)
         })
     }
 
