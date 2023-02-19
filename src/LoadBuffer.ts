@@ -56,7 +56,10 @@ export abstract class LoadBuffer<K, R, I = K> implements Promise<Map<K, R>> {
     abstract include(item: I): Promise<R | undefined>
 
     /**
-     * Removes an item from the batch.
+     * Removes an item from the batch. The relevant promises will still be
+     * triggered, but with undefined values.
+     *
+     * Removing then re-adding the same item has no effect.
      *
      * @param item
      * @returns
