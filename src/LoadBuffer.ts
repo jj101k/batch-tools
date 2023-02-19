@@ -37,6 +37,16 @@ export abstract class LoadBuffer<K, R, I = K> implements Promise<Map<K, R>> {
     }
 
     /**
+     * This will stop the actions which would resolve the promise. This does
+     * nothing if the promise is already resolved or aborted.
+     *
+     * @returns true if the action did anything.
+     */
+    abort() {
+        return this.loadSelectionBuffer.abort()
+    }
+
+    /**
      * Adds an item to the batch.
      *
      * @param item

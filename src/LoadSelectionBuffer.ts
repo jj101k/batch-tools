@@ -77,19 +77,22 @@ export class LoadSelectionBuffer<I> extends Promise<I[]> {
     }
 
     /**
-     * @throws
+     * This will stop the actions which would resolve the promise. This does
+     * nothing if the promise is already resolved or aborted.
+     *
+     * @returns true if the action did anything.
      */
     abort() {
-        if(this.resolved) {
-            throw new Error("Cannot abort - already resolved")
-        }
-        if(!this.aborted) {
+        if(this.resolved && !this.aborted) {
             this.aborted = true
             if(this.timeout) {
                 clearTimeout(this.timeout)
                 this.timeout = null
             }
             this.items.clear()
+            return true
+        } else {
+            return false
         }
     }
 
