@@ -52,14 +52,28 @@ export class LoadSelectionBuffer<I> extends Promise<I[]> {
                 clearTimeout(this.timeout)
                 this.timeout = null
             }
-            this.resolve([...this.items.values()])
+            this.resolve([...this.pendingItems.values()])
         }
     }
 
     /**
      *
      */
-    protected items = new Set<I>()
+    protected pendingItems = new Set<I>()
+
+    /**
+     *
+     */
+    get isFull() {
+        return this.pendingItems.size >= this.bufferCapacity
+    }
+
+    /**
+     *
+     */
+    get items() {
+        return this.pendingItems.values()
+    }
 
     /**
      *
@@ -89,7 +103,7 @@ export class LoadSelectionBuffer<I> extends Promise<I[]> {
                 clearTimeout(this.timeout)
                 this.timeout = null
             }
-            this.items.clear()
+            this.pendingItems.clear()
             return true
         } else {
             return false
@@ -105,8 +119,8 @@ export class LoadSelectionBuffer<I> extends Promise<I[]> {
      */
     add(item: I) {
         this.assertIsWritable()
-        this.items.add(item)
-        if (this.items.size >= this.bufferCapacity) {
+        this.pendingItems.add(item)
+        if (this.pendingItems.size >= this.bufferCapacity) {
             this.resolveOnce()
         }
         return this
@@ -120,6 +134,6 @@ export class LoadSelectionBuffer<I> extends Promise<I[]> {
      */
     delete(item: I) {
         this.assertIsWritable()
-        return this.items.delete(item)
+        return this.pendingItems.delete(item)
     }
 }

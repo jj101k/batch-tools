@@ -10,7 +10,7 @@ export class LoadSelectionBufferAny<K extends string | number, I> extends LoadSe
     /**
      *
      */
-    protected items: PseudoSet<I, K>
+    protected pendingItems: PseudoSet<I, K>
 
     /**
      *
@@ -23,6 +23,6 @@ export class LoadSelectionBufferAny<K extends string | number, I> extends LoadSe
         bufferCapacity = Infinity
     ) {
         super(delayMs, bufferCapacity)
-        this.items = new PseudoSet(getKey)
+        this.pendingItems = new PseudoSet(getKey)
     }
 }

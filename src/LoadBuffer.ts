@@ -13,6 +13,20 @@ export abstract class LoadBuffer<K, R, I = K> implements Promise<Map<K, R>> {
      */
     protected promise: Promise<Map<K, R>>
 
+    /**
+     * @see LoadSelectionBuffer#isFull
+     */
+    get isFull() {
+        return this.loadSelectionBuffer.isFull
+    }
+
+    /**
+     *
+     */
+    get items() {
+        return this.loadSelectionBuffer.items
+    }
+
     get [Symbol.toStringTag]() {
         return "LoadBuffer"
     }
