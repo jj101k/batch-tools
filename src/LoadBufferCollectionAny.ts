@@ -4,6 +4,8 @@ import { PseudoMap } from "./PseudoMap"
 import { LoadBufferCollection } from "./LoadBufferCollection"
 
 /**
+ * @see LoadBufferCollection
+ *
  * A load buffer collection with any type of object.
  */
 
