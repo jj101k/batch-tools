@@ -6,29 +6,17 @@ import { LoadSelectionBufferAny } from "./LoadSelectionBufferAny"
  *
  * This class operates on non-primitives which can be converted to primitives.
  */
-export class LoadBufferAny<I, K extends string | number, R> extends LoadBuffer<K, R, I> {
+export class LoadBufferAny<I, K extends string | number, R> extends LoadBuffer<I, R> {
     /**
      *
      * @param getKey
-     * @param then
+     * @param then Note that this must return a map of items to results, eg. a PseudoMap.
      * @param loadBuffer
      */
-    constructor(private getKey: (item: I) => K, then: (items: I[]) => Promise<Map<K, R>>,
+    constructor(getKey: (item: I) => K, then: (items: I[]) => Promise<Map<I, R>>,
         loadBuffer = new LoadSelectionBufferAny(getKey)
     ) {
         super(then, loadBuffer)
         this.promise = loadBuffer.then(then)
-    }
-
-    /**
-     * Adds an item to the batch.
-     *
-     * @param item
-     * @returns A promise resolving with the item's resultant value
-     */
-    include(item: I) {
-        this.loadSelectionBuffer.add(item)
-        const k = this.getKey(item)
-        return this.promise.then(v => v.get(k))
     }
 }

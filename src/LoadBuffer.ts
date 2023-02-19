@@ -5,9 +5,12 @@ import { LoadSelectionBuffer } from "./LoadSelectionBuffer"
  * milliseconds before resolving with the result. This is intended for
  * multiplexing what would otherwise be many separate calls together.
  *
- * This wraps the underlying promise
+ * This wraps the underlying promise.
+ *
+ * This class operates on primitives, eg. IDs, there is a class LoadBufferAny if
+ * you want to operate on raw objects.
  */
-export abstract class LoadBuffer<K, R, I = K> implements Promise<Map<K, R>> {
+export class LoadBuffer<K, R> implements Promise<Map<K, R>> {
     /**
      *
      */
@@ -42,7 +45,7 @@ export abstract class LoadBuffer<K, R, I = K> implements Promise<Map<K, R>> {
      * @param then
      * @param loadSelectionBuffer
      */
-    constructor(then: (items: I[]) => Promise<Map<K, R>>, protected loadSelectionBuffer = new LoadSelectionBuffer<I>()) {
+    constructor(then: (items: K[]) => Promise<Map<K, R>>, protected loadSelectionBuffer = new LoadSelectionBuffer<K>()) {
         this.promise = loadSelectionBuffer.then(then)
 
         this.catch = this.promise.catch
@@ -67,7 +70,10 @@ export abstract class LoadBuffer<K, R, I = K> implements Promise<Map<K, R>> {
      * @returns A promise resolving with the item's resultant value or, if
      * removed, undefined.
      */
-    abstract include(item: I): Promise<R | undefined>
+    include(item: K) {
+        this.loadSelectionBuffer.add(item)
+        return this.promise.then(v => v.get(item))
+    }
 
     /**
      * Removes an item from the batch. The relevant promises will still be
@@ -78,7 +84,7 @@ export abstract class LoadBuffer<K, R, I = K> implements Promise<Map<K, R>> {
      * @param item
      * @returns
      */
-    remove(item: I): boolean {
+    remove(item: K): boolean {
         return this.loadSelectionBuffer.delete(item)
     }
 }

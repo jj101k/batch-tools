@@ -1,7 +1,4 @@
 import { LoadBuffer } from "./LoadBuffer"
-import { LoadBufferAny } from "./LoadBufferAny"
-import { LoadBufferPrimitive } from "./LoadBufferPrimitive"
-import { PseudoMap } from "./PseudoMap"
 
 /**
  * This applies where your load buffers have a meaningful size limit. If they
@@ -12,12 +9,15 @@ import { PseudoMap } from "./PseudoMap"
  *
  * This can safely be filled, allowed to drain, then refilled. For that reason
  * it doesn't have a promise interface.
+ *
+ * This class operates on primitives, eg. IDs, there is a class
+ * LoadBufferCollectionAny if you want to operate on raw objects.
  */
-export abstract class LoadBufferCollection<K extends string | number, R, I = K> {
+export abstract class LoadBufferCollection<K, R> {
     /**
      *
      */
-    private buffers: LoadBuffer<K, R, I>[] = []
+    private buffers: LoadBuffer<K, R>[] = []
 
     /**
      *
@@ -42,18 +42,20 @@ export abstract class LoadBufferCollection<K extends string | number, R, I = K> 
     /**
      *
      */
-    protected abstract createLoadBuffer(): LoadBuffer<K, R, I>
+    protected createLoadBuffer(): LoadBuffer<K, R> {
+        return new LoadBuffer(this.then)
+    }
 
     /**
      *
      */
-    protected items = new Map<I, LoadBuffer<K, R, I>>()
+    protected items = new Map<K, LoadBuffer<K, R>>()
 
     /**
      *
      * @param then
      */
-    constructor(protected then: (items: I[]) => Promise<Map<K, R>>) {
+    constructor(protected then: (items: K[]) => Promise<Map<K, R>>) {
     }
 
     /**
@@ -81,7 +83,7 @@ export abstract class LoadBufferCollection<K extends string | number, R, I = K> 
      * @returns A promise resolving with the item's resultant value or, if
      * removed, undefined.
      */
-    include(item: I): Promise<R | undefined> {
+    include(item: K): Promise<R | undefined> {
         let bufferReference = this.items.get(item)
         if(!bufferReference) {
             bufferReference = this.currentLoadBuffer
@@ -99,7 +101,7 @@ export abstract class LoadBufferCollection<K extends string | number, R, I = K> 
      * @param item
      * @returns
      */
-    remove(item: I): boolean {
+    remove(item: K): boolean {
         const bufferReference = this.items.get(item)
         if(bufferReference) {
             this.items.delete(item)
@@ -107,37 +109,5 @@ export abstract class LoadBufferCollection<K extends string | number, R, I = K> 
         } else {
             return false
         }
-    }
-}
-
-/**
- * A load buffer collection with any type of object.
- */
-export class LoadBufferCollectionAny<K extends string | number, R, I> extends LoadBufferCollection<K, R, I> {
-    /**
-     *
-     */
-    protected items = new PseudoMap<K, LoadBuffer<K, R, I>, I>(this.getKey)
-
-    protected createLoadBuffer(): LoadBuffer<K, R, I> {
-        return new LoadBufferAny(this.getKey, this.then)
-    }
-
-    /**
-     *
-     * @param getKey
-     * @param then
-     */
-    constructor(private getKey: (item: I) => K, then: (items: I[]) => Promise<Map<K, R>>) {
-        super(then)
-    }
-}
-
-/**
- * A load buffer collection with primitive objects only.
- */
-export class LoadBufferCollectionPrimitive<I extends string | number, R> extends LoadBufferCollection<I, R> {
-    protected createLoadBuffer(): LoadBuffer<I, R, I> {
-        return new LoadBufferPrimitive(this.then)
     }
 }
