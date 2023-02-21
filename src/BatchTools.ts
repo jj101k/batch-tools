@@ -131,7 +131,7 @@ export class BatchTools<T, U> {
         return out
     }
 
-    async call(t: T): Promise<U> {
-        return (await this.callMulti(t))[0]
+    call(t: T): Promise<U> {
+        return this.callMulti(t).then(r => r[0])
     }
 }
