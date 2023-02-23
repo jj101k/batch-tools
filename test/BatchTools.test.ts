@@ -48,27 +48,31 @@ class BatchToolTestWrapper {
         const r = await this.batchTools.call(n)
         this.results.set(n, r)
     }
+    wait(time: number) {
+        return new Promise(resolve => setTimeout(resolve, time))
+    }
 }
 
 describe("Batch tools are usable", () => {
-    it("can run with a timeout", async () => {
+    it("can run with a timeout", async function() {
+        this.slow(500)
         const consumer = new BatchToolsConsumer()
         const testWrapper = new BatchToolTestWrapper(consumer.fooBatchedTimeout)
         testWrapper.trySingleCall("a")
         testWrapper.tryMultiCall("b", "c")
-        await new Promise(resolve => setTimeout(resolve, 20))
+        await testWrapper.wait(20)
         // t+20, no call
         testWrapper.trySingleCall("d")
         testWrapper.tryMultiCall("e", "f")
-        await new Promise(resolve => setTimeout(resolve, 20))
+        await testWrapper.wait(20)
         // t+40, no call
         testWrapper.trySingleCall("g")
         testWrapper.tryMultiCall("h", "i")
-        await new Promise(resolve => setTimeout(resolve, 20))
+        await testWrapper.wait(20)
         // t+60, call 1 fired
         testWrapper.trySingleCall("j")
         testWrapper.tryMultiCall("k", "l")
-        await new Promise(resolve => setTimeout(resolve, 300))
+        await testWrapper.wait(300)
         // t+360, both calls fired and returned
 
         const expected = new Map("abcdefghijkl".split("").map(v => [v, v + "!"]))
@@ -77,30 +81,31 @@ describe("Batch tools are usable", () => {
         assert.deepEqual(testWrapper.results, expected, "Results match")
     })
 
-    it("can run in manual-submit mode", async () => {
+    it("can run in manual-submit mode", async function() {
+        this.slow(1000)
         const consumer = new BatchToolsConsumer()
         const testWrapper = new BatchToolTestWrapper(consumer.fooBatchedManual)
         testWrapper.trySingleCall("a")
         testWrapper.tryMultiCall("b", "c")
-        await new Promise(resolve => setTimeout(resolve, 20))
+        await testWrapper.wait(20)
         // t+20, no call
         testWrapper.trySingleCall("d")
         testWrapper.tryMultiCall("e", "f")
-        await new Promise(resolve => setTimeout(resolve, 20))
+        await testWrapper.wait(20)
         // t+40, no call
         testWrapper.trySingleCall("g")
         testWrapper.tryMultiCall("h", "i")
-        await new Promise(resolve => setTimeout(resolve, 20))
+        await testWrapper.wait(20)
         // t+60, still no call
         testWrapper.trySingleCall("j")
         testWrapper.tryMultiCall("k", "l")
-        await new Promise(resolve => setTimeout(resolve, 300))
+        await testWrapper.wait(300)
         // t+360, still no call.
 
         assert.equal(consumer.callCount, 0, "No calls made in advance")
         consumer.fooBatchedManual.send()
 
-        await new Promise(resolve => setTimeout(resolve, 150)) // Wait long enough for it to finish
+        await testWrapper.wait(150) // Wait long enough for it to finish
 
         const expected = new Map("abcdefghijkl".split("").map(v => [v, v + "!"]))
 
