@@ -10,8 +10,15 @@ export enum BatchState {
     FINISHED
 }
 
+/**
+ * You probably want to set timeoutMs here.
+ */
 interface BatchSendCondition {
     limit?: number
+    /**
+     * You almost certainly want to set this, otherwise you may need to send
+     * batches manually.
+     */
     timeoutMs?: number
 }
 
@@ -26,6 +33,13 @@ class Batch<T, U> {
     private currentAction: Promise<U[]> | null = null
 
     private _state: BatchState = BatchState.INITIAL
+
+    /**
+     *
+     */
+    get size() {
+        return this.backlog.length
+    }
 
     constructor(private func: (...ts: T[]) => Promise<U[]>, private sendCondition: BatchSendCondition = {}) {
 
@@ -106,6 +120,13 @@ export class BatchTools<T, U> {
 
     private activeBatch: Batch<T, U> | null = null
 
+    /**
+     *
+     */
+    get activeBatchSize() {
+        return this.activeBatch?.size
+    }
+
     constructor(private func: (...ts: T[]) => Promise<U[]>, private sendCondition: BatchSendCondition = {}) {
 
     }
@@ -133,5 +154,16 @@ export class BatchTools<T, U> {
 
     call(t: T): Promise<U> {
         return this.callMulti(t).then(r => r[0])
+    }
+
+    /**
+     * Use this to send the current batch immediately.
+     */
+    send() {
+        if(this.activeBatch) {
+            this.activeBatch.finish()
+            this.batches.push(this.activeBatch)
+        }
+        this.activeBatch = new Batch(this.func, this.sendCondition)
     }
 }
