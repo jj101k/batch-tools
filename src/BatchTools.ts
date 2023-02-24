@@ -27,12 +27,27 @@ interface BatchSendCondition {
  * when it's full or when a certain time has elapsed.
  */
 class Batch<T, U> {
+    /**
+     *
+     */
+    private debug = false
+
     private resolve: ((value: any) => any) | null = null
     private backlog: T[] = []
 
     private currentAction: Promise<U[]> | null = null
 
     private _state: BatchState = BatchState.INITIAL
+
+    /**
+     *
+     * @param message
+     */
+    private debugLog(message: string) {
+        if(this.debug) {
+            console.log(message)
+        }
+    }
 
     /**
      *
@@ -58,19 +73,25 @@ class Batch<T, U> {
 
     private start() {
         if(!this.currentAction) {
+            this.debugLog("Setup")
             this.currentAction = (
                 async () => {
                     this.state = BatchState.WAITING
                     await new Promise(resolve => this.resolve = resolve)
                     try {
+                        this.debugLog("Resolved")
                         return await this.func(...this.backlog)
                     } finally {
+                        this.debugLog("Post-resolve")
                         this.state = BatchState.FINISHED
                     }
                 }
             )()
             if(this.sendCondition.timeoutMs !== undefined) {
-                setTimeout(() => this.finish(), this.sendCondition.timeoutMs)
+                setTimeout(() => {
+                    this.debugLog("Time out")
+                    this.finish()
+                }, this.sendCondition.timeoutMs)
             }
         }
         return this.currentAction
@@ -88,9 +109,11 @@ class Batch<T, U> {
         let remainingLength: number
         if(this.sendCondition.limit) {
             remainingLength = this.sendCondition.limit - this.backlog.length
+            this.debugLog(`${ts.length} compare ${remainingLength}`)
             if(ts.length < remainingLength) {
                 this.backlog.push(...ts)
             } else {
+                this.debugLog("Over")
                 this.backlog.push(...ts.slice(0, remainingLength))
                 this.finish()
             }
@@ -105,11 +128,14 @@ class Batch<T, U> {
     }
 
     finish() {
+        this.debugLog("Finish?")
         if(this.state < BatchState.SENT) {
+            this.debugLog("Finish")
             if(!this.resolve) {
                 throw new Error("Too early to finish")
             }
             this.state = BatchState.SENT
+            this.debugLog("Resolve")
             this.resolve(null)
         }
     }
