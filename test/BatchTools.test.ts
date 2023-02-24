@@ -44,14 +44,14 @@ class BatchToolTestWrapper {
 
     async tryMultiCall(...ns: string[]) {
         const rs = await this.batchTools.callMulti(...ns)
-        if(debug) console.log("Values in")
+        if(debug) console.log(`Storing ${rs.length} results`)
         for(const [i, r] of Object.entries(rs)) {
             this.results.set(ns[+i]!, r)
         }
     }
     async trySingleCall(n: string) {
         const r = await this.batchTools.call(n)
-        if(debug) console.log("Value in")
+        if(debug) console.log("Storing 1 result")
         this.results.set(n, r)
     }
     async wait(time: number) {
@@ -89,7 +89,7 @@ describe("Batch tools are usable", () => {
         const expected = new Map("abcdefghijkl".split("").map(v => [v, v + "!"]))
 
         assert.equal(consumer.callCount, 2, "Expected number of calls made")
-        assert.deepEqual(testWrapper.results, expected, "Results match")
+        assert.deepEqual([...testWrapper.results], [...expected], "Results match")
     })
 
     it("can run with a timeout + limit", async function() {
@@ -119,7 +119,7 @@ describe("Batch tools are usable", () => {
         const expected = new Map("abcdefghijklm".split("").map(v => [v, v + "!"]))
 
         assert.equal(consumer.callCount, 2, "Expected number of calls made")
-        assert.deepEqual(testWrapper.results, expected, "Results match")
+        assert.deepEqual([...testWrapper.results], [...expected], "Results match")
     })
 
     it("can run in manual-submit mode", async function() {
@@ -151,6 +151,6 @@ describe("Batch tools are usable", () => {
         const expected = new Map("abcdefghijkl".split("").map(v => [v, v + "!"]))
 
         assert.equal(consumer.callCount, 1, "Expected number of calls made")
-        assert.deepEqual(testWrapper.results, expected, "Results match")
+        assert.deepEqual([...testWrapper.results], [...expected], "Results match")
     })
 })
