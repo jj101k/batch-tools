@@ -92,6 +92,36 @@ describe("Batch tools are usable", () => {
         assert.deepEqual(testWrapper.results, expected, "Results match")
     })
 
+    it("can run with a timeout + limit", async function() {
+        this.slow(500)
+        const consumer = new BatchToolsConsumer()
+        const testWrapper = new BatchToolTestWrapper(consumer.fooBatchedLimit)
+
+        const items = "abcdefghijklm".split("")
+
+        // More than 10!
+        testWrapper.tryMultiCall(...items.slice(0, 5))
+        testWrapper.tryMultiCall(...items.slice(5))
+        await testWrapper.wait(20)
+        // t+20, one call made and another one in the backlog.
+        assert.equal(consumer.callCount, 1, "One call made immediately")
+        assert.ok((consumer.fooBatchedLimit.activeBatchSize ?? 0) < 5, "The active batch is small & incomplete")
+        await testWrapper.wait(40)
+        // t+60, two calls made
+        assert.equal(consumer.callCount, 2, "Two calls made after 1x timeout")
+        await testWrapper.wait(80)
+        // t+140, one call completed
+        assert.equal(testWrapper.results.size, 5, "Some results are in")
+        await testWrapper.wait(100)
+        // t+250, all calls completed
+        assert.equal(testWrapper.results.size, items.length, "All results are in")
+
+        const expected = new Map("abcdefghijklm".split("").map(v => [v, v + "!"]))
+
+        assert.equal(consumer.callCount, 2, "Expected number of calls made")
+        assert.deepEqual(testWrapper.results, expected, "Results match")
+    })
+
     it("can run in manual-submit mode", async function() {
         this.slow(1000)
         const consumer = new BatchToolsConsumer()
