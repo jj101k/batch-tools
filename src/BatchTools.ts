@@ -128,7 +128,13 @@ class Batch<T, U> {
         }
     }
 
+    /**
+     *
+     */
     finish() {
+        if(!this.currentAction) {
+            throw new Error("Internal error: batch cannot be finished before it's started")
+        }
         this.debugLog("Finish?")
         if(this.state < BatchState.SENT) {
             this.debugLog("Finish")
