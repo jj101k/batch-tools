@@ -105,6 +105,7 @@ class Batch<T, U> {
             }
         }
         const offset = this.backlog.length
+        const promise = this.start().then(results => results.slice(offset, offset + ts.length))
 
         let remainingLength: number
         if(this.sendCondition.limit) {
@@ -122,7 +123,7 @@ class Batch<T, U> {
             this.backlog.push(...ts)
         }
         return {
-            promise: this.start().then(results => results.slice(offset, offset + ts.length)),
+            promise,
             remaining: remainingLength,
         }
     }
