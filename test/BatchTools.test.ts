@@ -1,6 +1,8 @@
 import * as assert from "assert"
 import {BatchTools} from "../src"
 
+const debug = false
+
 class BatchToolsConsumer {
     private _c_fooBatchedLimit: BatchTools<string, string> | null = null
     private _c_fooBatchedManual: BatchTools<string, string> | null = null
@@ -26,8 +28,10 @@ class BatchToolsConsumer {
         return this._c_fooBatchedTimeout
     }
     async foo(...items: string[]) {
+        if(debug) console.log("Results due in 100ms")
         this.callCount++
         await new Promise(resolve => setTimeout(resolve, 100))
+        if(debug) console.log("> Time out, value due at next execution opportunity")
         return items.map(i => i + "!")
     }
 }
@@ -40,16 +44,23 @@ class BatchToolTestWrapper {
 
     async tryMultiCall(...ns: string[]) {
         const rs = await this.batchTools.callMulti(...ns)
+        if(debug) console.log("Values in")
         for(const [i, r] of Object.entries(rs)) {
             this.results.set(ns[+i]!, r)
         }
     }
     async trySingleCall(n: string) {
         const r = await this.batchTools.call(n)
+        if(debug) console.log("Value in")
         this.results.set(n, r)
     }
-    wait(time: number) {
-        return new Promise(resolve => setTimeout(resolve, time))
+    async wait(time: number) {
+        if(debug) console.log("Wait " + time + "ms: start")
+        try {
+            await new Promise(resolve => setTimeout(resolve, time))
+        } finally {
+            if(debug) console.log("Wait finished")
+        }
     }
 }
 
