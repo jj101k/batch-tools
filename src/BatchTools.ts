@@ -1,5 +1,14 @@
+/**
+ * A promise that handles some of the work given
+ */
 interface PartialPromise<P> {
+    /**
+     * The promise used
+     */
     promise: Promise<P>
+    /**
+     * The amount of work which could not be handled
+     */
     remaining: number
 }
 
@@ -97,6 +106,11 @@ class Batch<T, U> {
         return this.currentAction
     }
 
+    /**
+     *
+     * @param ts
+     * @returns
+     */
     add(...ts: T[]): PartialPromise<U[]> {
         if(this.state > BatchState.WAITING) {
             return {
@@ -109,13 +123,15 @@ class Batch<T, U> {
 
         let remainingLength: number
         if(this.sendCondition.limit) {
-            remainingLength = this.sendCondition.limit - this.backlog.length
-            this.debugLog(`${ts.length} compare ${remainingLength}`)
-            if(ts.length < remainingLength) {
+            const space = this.sendCondition.limit - this.backlog.length
+            this.debugLog(`${ts.length} compare ${space}`)
+            if(ts.length < space) {
+                remainingLength = 0
                 this.backlog.push(...ts)
             } else {
+                remainingLength = ts.length - space
                 this.debugLog("Over")
-                this.backlog.push(...ts.slice(0, remainingLength))
+                this.backlog.push(...ts.slice(0, space))
                 this.finish()
             }
         } else {
