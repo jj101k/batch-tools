@@ -106,14 +106,31 @@ export class Batch<T, U> {
      *
      * @param func
      * @param sendCondition
-     * @param delay If concurrently true, the batch will not be finished even
+     * @param _delay If concurrently true, the batch will not be finished even
      * after triggering its condition. For size-limited batches, that means it
      * will not permit further additions; for time-limited batches, this makes
      * it effectively condition-limited. Call finish() to move on.
      */
     constructor(private func: (...ts: T[]) => Promise<U[]>,
-        private sendCondition: BatchSendCondition = {}, private delay = false
+        private sendCondition: BatchSendCondition = {}, private _delay = false
     ) {
+    }
+
+    /**
+     *
+     */
+    get delay() {
+        return this._delay
+    }
+
+    /**
+     *
+     */
+    set delay(v) {
+        this._delay = v
+        if(this.intState == BatchState.ReadyToSend && !v) {
+            this.intState = BatchState.Sent
+        }
     }
 
     get state() {
