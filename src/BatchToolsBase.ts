@@ -17,7 +17,14 @@ export class BatchToolsBase<T, U> {
         return this.activeBatch?.size
     }
 
-    constructor(private func: (...ts: T[]) => Promise<U[]>, private sendCondition: BatchSendCondition = {}) {
+    /**
+     *
+     * @param func
+     * @param sendCondition
+     */
+    constructor(private func: (...ts: T[]) => Promise<U[]>,
+        private sendCondition: BatchSendCondition = {},
+    ) {
 
     }
 

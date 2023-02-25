@@ -49,7 +49,14 @@ export class Batch<T, U> {
         return this.backlog.length
     }
 
-    constructor(private func: (...ts: T[]) => Promise<U[]>, private sendCondition: BatchSendCondition = {}) {
+    /**
+     *
+     * @param func
+     * @param sendCondition
+     */
+    constructor(private func: (...ts: T[]) => Promise<U[]>,
+        private sendCondition: BatchSendCondition = {},
+    ) {
     }
 
     get state() {
