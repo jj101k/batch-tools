@@ -1,5 +1,6 @@
 import * as assert from "assert"
 import {BatchTools} from "../src"
+import { TestHelper } from "./TestHelper"
 
 const debug = false
 
@@ -86,10 +87,8 @@ describe("Batch tools are usable", () => {
         await testWrapper.wait(300)
         // t+360, both calls fired and returned
 
-        const expected = new Map("abcdefghijkl".split("").map(v => [v, v + "!"]))
-
         assert.equal(consumer.callCount, 2, "Expected number of calls made")
-        assert.deepEqual([...testWrapper.results], [...expected], "Results match")
+        assert.deepEqual(TestHelper.comparableResults(testWrapper.results), TestHelper.expectedResults("abcdefghijkl"), "Results match")
     })
 
     it("can run with a timeout + limit", async function() {
@@ -116,10 +115,8 @@ describe("Batch tools are usable", () => {
         // t+250, all calls completed
         assert.equal(testWrapper.results.size, items.length, "All results are in")
 
-        const expected = new Map("abcdefghijklm".split("").map(v => [v, v + "!"]))
-
         assert.equal(consumer.callCount, 2, "Expected number of calls made")
-        assert.deepEqual([...testWrapper.results], [...expected], "Results match")
+        assert.deepEqual(TestHelper.comparableResults(testWrapper.results), TestHelper.expectedResults("abcdefghijklm"), "Results match")
     })
 
     it("can run in manual-submit mode", async function() {
@@ -148,9 +145,7 @@ describe("Batch tools are usable", () => {
 
         await testWrapper.wait(150) // Wait long enough for it to finish
 
-        const expected = new Map("abcdefghijkl".split("").map(v => [v, v + "!"]))
-
         assert.equal(consumer.callCount, 1, "Expected number of calls made")
-        assert.deepEqual([...testWrapper.results], [...expected], "Results match")
+        assert.deepEqual(TestHelper.comparableResults(testWrapper.results), TestHelper.expectedResults("abcdefghijkl"), "Results match")
     })
 })
