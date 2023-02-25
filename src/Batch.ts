@@ -185,7 +185,8 @@ export class Batch<T, U> {
     }
 
     /**
-     *
+     * Finish collecting the batch, and send it. This applies when you have no
+     * automatic send conditions, as well as where you've asked for a delay.
      */
     finish() {
         this.debugLog("Finish?")
