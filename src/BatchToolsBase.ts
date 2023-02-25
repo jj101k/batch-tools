@@ -41,7 +41,7 @@ export class BatchToolsBase<T, U> {
                 promises.push(result.promise)
                 ts = ts.slice(ts.length - result.remaining)
             }
-            if(this.activeBatch.state >= BatchState.SENT) {
+            if(this.activeBatch.state >= BatchState.Sent) {
                 this.batches.push(this.activeBatch)
                 this.activeBatch = new Batch(this.func, this.sendCondition)
             }

@@ -1,10 +1,9 @@
 /**
  *
  */
-
 export enum BatchState {
-    INITIAL,
-    WAITING,
-    SENT,
-    FINISHED
+    Initial,
+    Waiting,
+    Sent,
+    Finished,
 }

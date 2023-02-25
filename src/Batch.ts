@@ -30,7 +30,7 @@ export class Batch<T, U> {
 
     private currentAction: Promise<U[]> | null = null;
 
-    private _state: BatchState = BatchState.INITIAL;
+    private _state: BatchState = BatchState.Initial;
 
     /**
      *
@@ -68,14 +68,14 @@ export class Batch<T, U> {
             this.debugLog("Setup")
             this.currentAction = (
                 async () => {
-                    this.state = BatchState.WAITING
+                    this.state = BatchState.Waiting
                     await new Promise(resolve => this.resolve = resolve)
                     try {
                         this.debugLog("Resolved")
                         return await this.func(...this.backlog)
                     } finally {
                         this.debugLog("Post-resolve")
-                        this.state = BatchState.FINISHED
+                        this.state = BatchState.Finished
                     }
                 }
             )()
@@ -95,7 +95,7 @@ export class Batch<T, U> {
      * @returns
      */
     add(...ts: T[]): PartialPromise<U[]> {
-        if (this.state > BatchState.WAITING) {
+        if (this.state > BatchState.Waiting) {
             return {
                 promise: Promise.resolve([]),
                 remaining: ts.length,
@@ -135,12 +135,12 @@ export class Batch<T, U> {
             throw new Error("Internal error: batch cannot be finished before it's started")
         }
         this.debugLog("Finish?")
-        if (this.state < BatchState.SENT) {
+        if (this.state < BatchState.Sent) {
             this.debugLog("Finish")
             if (!this.resolve) {
                 throw new Error("Too early to finish")
             }
-            this.state = BatchState.SENT
+            this.state = BatchState.Sent
             this.debugLog("Resolve")
             this.resolve(null)
         }
