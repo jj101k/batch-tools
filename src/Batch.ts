@@ -64,7 +64,9 @@ export class Batch<T, U> {
     }
 
     private set state(v) {
-        if (v < this._state) {
+        if(v == this._state) {
+            return // Nothing to do
+        } else if (v < this._state) {
             throw new Error("State may only move forwards")
         }
         this._state = v
