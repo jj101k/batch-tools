@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "prepare": "rm -rf dist && tsc && webpack ./dist/webpack.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha -r ts-node/register test/'**.test.ts'"
   },
   "repository": {
     "type": "git",
