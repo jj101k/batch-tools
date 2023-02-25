@@ -61,6 +61,14 @@ export class Batch<T, U> {
             throw new Error("State may only move forwards")
         }
         this._state = v
+
+        if(v == BatchState.Sent) {
+            if (!this.resolve) {
+                throw new Error("Too early to finish")
+            }
+            this.debugLog("Resolve")
+            this.resolve(null)
+        }
     }
 
     private start() {
@@ -137,12 +145,7 @@ export class Batch<T, U> {
         this.debugLog("Finish?")
         if (this.state < BatchState.Sent) {
             this.debugLog("Finish")
-            if (!this.resolve) {
-                throw new Error("Too early to finish")
-            }
             this.state = BatchState.Sent
-            this.debugLog("Resolve")
-            this.resolve(null)
         }
     }
 }
