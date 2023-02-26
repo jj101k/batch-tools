@@ -106,6 +106,13 @@ export class Batch<T, U> {
     }
 
     /**
+     * True if add() will do anything, ie if this batch is unsent and still has capacity.
+     */
+    get canAdd() {
+        return this.intState < BatchState.Sent && (this.sendCondition.limit ?? Infinity) > this.backlog.length
+    }
+
+    /**
      *
      */
     set delay(v) {
