@@ -41,7 +41,7 @@ export class WorkPool {
      */
     private get currentSecondFillStats() {
         const nowTs = new Date().valueOf()
-        if(!this.oneSecondFillStats || this.oneSecondFillStats.startTs < nowTs - 1000) {
+        if(!this.oneSecondFillStats || this.oneSecondFillStats.startTs < nowTs - this.maxFillRate.ms) {
             this.oneSecondFillStats = {startTs: nowTs, count: 0}
         }
         return this.oneSecondFillStats
@@ -59,14 +59,13 @@ export class WorkPool {
      * we limit that.
      */
     private fillActive() {
-        const maxFill = 1_000_000
         for(; this.active < this.capacity; this.currentSecondFillStats.count++) {
             const currentSecondFillStats = this.currentSecondFillStats
-            if(currentSecondFillStats.count >= maxFill) {
+            if(currentSecondFillStats.count >= this.maxFillRate.count) {
                 console.warn("WorkPool: Possible work loop, rescheduling to the end of the second")
                 // Reschedule to the end of the second.
                 const nowTs = new Date().valueOf()
-                setTimeout(() => this.fillActive(), currentSecondFillStats.startTs + 1000 - nowTs)
+                setTimeout(() => this.fillActive(), currentSecondFillStats.startTs + this.maxFillRate.ms - nowTs)
                 break
             }
             const item = this.backlog.shift()
@@ -80,8 +79,11 @@ export class WorkPool {
     /**
      *
      * @param capacity
+     * @param maxFillRate
      */
-    constructor(public readonly capacity: number) {
+    constructor(public readonly capacity: number,
+        private readonly maxFillRate: {count: number, ms: number} = {count: 1_000_000, ms: 1_000},
+    ) {
     }
 
     /**
