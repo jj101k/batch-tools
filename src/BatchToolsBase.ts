@@ -15,7 +15,7 @@ export class BatchToolsBase<T, U> {
      * @returns
      */
     private activeOrNewBatch() {
-        if(!this.activeBatch || this.activeBatch.state >= BatchState.Sent) {
+        if(!this.activeBatch?.canAdd) {
             if(this.activeBatch) {
                 this.batches.push(this.activeBatch)
             }
