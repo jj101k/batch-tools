@@ -8,7 +8,7 @@ export class WorkPool {
     private _active = 0
 
     /**
-     * @see fillActive()
+     * @see activateItems()
      *
      * This tracks how many items were filled in a second.
      */
@@ -32,7 +32,7 @@ export class WorkPool {
     private set active(v) {
         const change = this._active - v
         if(change < 0) {
-            this.fillActive()
+            this.activateItems()
         }
     }
 
@@ -58,14 +58,14 @@ export class WorkPool {
      * Note 2: Work items could add more work, in a possible infinite loop. So
      * we limit that.
      */
-    private fillActive() {
+    private activateItems() {
         for(; this.active < this.capacity; this.currentSecondFillStats.count++) {
             const currentSecondFillStats = this.currentSecondFillStats
             if(currentSecondFillStats.count >= this.maxFillRate.count) {
                 console.warn("WorkPool: Possible work loop, rescheduling to the end of the second")
                 // Reschedule to the end of the second.
                 const nowTs = new Date().valueOf()
-                setTimeout(() => this.fillActive(), currentSecondFillStats.startTs + this.maxFillRate.ms - nowTs)
+                setTimeout(() => this.activateItems(), currentSecondFillStats.startTs + this.maxFillRate.ms - nowTs)
                 break
             }
             const item = this.backlog.shift()
@@ -93,6 +93,6 @@ export class WorkPool {
      */
     add(...items: Array<() => (Promise<any> | any)>) {
         this.backlog.push(...items)
-        this.fillActive()
+        this.activateItems()
     }
 }
