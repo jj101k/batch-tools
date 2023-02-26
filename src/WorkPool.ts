@@ -10,9 +10,9 @@ export class WorkPool {
     /**
      * @see fillActive()
      *
-     * This should start at zero and be reduced to zero after a fill pass.
+     * This tracks how many items were filled in a second.
      */
-    private singlePassFillCount = 0
+    private oneSecondFillStats: {startTs: number, count: number} | null = null
 
     /**
      *
@@ -37,6 +37,17 @@ export class WorkPool {
     }
 
     /**
+     *
+     */
+    private get currentSecondFillStats() {
+        const nowTs = new Date().valueOf()
+        if(!this.oneSecondFillStats || this.oneSecondFillStats.startTs < nowTs - 1000) {
+            this.oneSecondFillStats = {startTs: nowTs, count: 0}
+        }
+        return this.oneSecondFillStats
+    }
+
+    /**
      * Adds more active items.
      *
      * Note 1: while this is designed for async cases and therefore the active
@@ -49,25 +60,20 @@ export class WorkPool {
      */
     private fillActive() {
         const maxFill = 1_000_000
-        let startedFromZero = this.singlePassFillCount == 0
-        try {
-            let added = 0
-            for(; this.active < this.capacity; added++, this.singlePassFillCount++) {
-                if(this.singlePassFillCount >= maxFill) {
-                    // Reschedule
-                    setTimeout(() => this.fillActive(), 1000)
-                    break
-                }
-                const item = this.backlog.shift()
-                if(!item) break
-                const p = item()
-                this.active++
-                p.finally(() => this.active--)
+        for(; this.active < this.capacity; this.currentSecondFillStats.count++) {
+            const currentSecondFillStats = this.currentSecondFillStats
+            if(currentSecondFillStats.count >= maxFill) {
+                console.warn("WorkPool: Possible work loop, rescheduling to the end of the second")
+                // Reschedule to the end of the second.
+                const nowTs = new Date().valueOf()
+                setTimeout(() => this.fillActive(), currentSecondFillStats.startTs + 1000 - nowTs)
+                break
             }
-        } finally {
-            if(startedFromZero) {
-                this.singlePassFillCount = 0
-            }
+            const item = this.backlog.shift()
+            if(!item) break
+            const p = item()
+            this.active++
+            p.finally(() => this.active--)
         }
     }
 
