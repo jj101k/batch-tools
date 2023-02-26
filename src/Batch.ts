@@ -35,25 +35,6 @@ export class Batch<T, U> {
     /**
      *
      */
-    private get readyToSend() {
-        return this.intState >= BatchState.ReadyToSend
-    }
-
-    /**
-     *
-     */
-    private set readyToSend(v) {
-        if(!v) {
-            throw new Error("Marking unready to send is not supported")
-        }
-        if(this.intState < BatchState.ReadyToSend) {
-            this.intState = BatchState.ReadyToSend
-        }
-    }
-
-    /**
-     *
-     */
     private get intState() {
         return this._state
     }
@@ -109,7 +90,8 @@ export class Batch<T, U> {
      * @param _delay If concurrently true, the batch will not be finished even
      * after triggering its condition. For size-limited batches, that means it
      * will not permit further additions; for time-limited batches, this makes
-     * it effectively condition-limited. Call finish() to move on.
+     * it effectively condition-limited. Set "delay" to false when no longer
+     * needed.
      */
     constructor(private func: (...ts: T[]) => Promise<U[]>,
         private sendCondition: BatchSendCondition = {}, private _delay = false
@@ -156,7 +138,7 @@ export class Batch<T, U> {
             if (this.sendCondition.timeoutMs !== undefined) {
                 setTimeout(() => {
                     this.debugLog("Time out")
-                    this.readyToSend = true
+                    this.finish()
                 }, this.sendCondition.timeoutMs)
             }
         }
@@ -189,7 +171,7 @@ export class Batch<T, U> {
                 remainingLength = ts.length - space
                 this.debugLog("Over")
                 this.backlog.push(...ts.slice(0, space))
-                this.readyToSend = true
+                this.finish()
             }
         } else {
             remainingLength = 0
@@ -206,10 +188,8 @@ export class Batch<T, U> {
      * automatic send conditions, as well as where you've asked for a delay.
      */
     finish() {
-        this.debugLog("Finish?")
-        if (this.intState < BatchState.Sent) {
-            this.debugLog("Finish")
-            this.intState = BatchState.Sent
+        if(this.intState < BatchState.ReadyToSend) {
+            this.intState = BatchState.ReadyToSend
         }
     }
 }
