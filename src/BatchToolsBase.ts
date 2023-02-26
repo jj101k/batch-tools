@@ -12,6 +12,23 @@ export class BatchToolsBase<T, U> {
 
     /**
      *
+     * @returns
+     */
+    private activeOrNewBatch() {
+        if(!this.activeBatch || this.activeBatch.state >= BatchState.Sent) {
+            if(this.activeBatch) {
+                this.batches.push(this.activeBatch)
+            }
+            this.activeBatch = new Batch(
+                this.func,
+                this.sendCondition
+            )
+        }
+        return this.activeBatch
+    }
+
+    /**
+     *
      */
     get activeBatchSize() {
         return this.activeBatch?.size
@@ -38,19 +55,13 @@ export class BatchToolsBase<T, U> {
      * @returns
      */
     protected getBatchPromises(...ts: T[]): Promise<U[]>[] {
-        if(!this.activeBatch) {
-            this.activeBatch = new Batch(this.func, this.sendCondition)
-        }
         const promises: Promise<U[]>[] = []
         while(ts.length) {
-            const result = this.activeBatch.add(...ts)
+            const batch = this.activeOrNewBatch()
+            const result = batch.add(...ts)
             if(result.remaining < ts.length) {
                 promises.push(result.promise)
                 ts = ts.slice(ts.length - result.remaining)
-            }
-            if(this.activeBatch.state >= BatchState.Sent) {
-                this.batches.push(this.activeBatch)
-                this.activeBatch = new Batch(this.func, this.sendCondition)
             }
         }
         return promises
