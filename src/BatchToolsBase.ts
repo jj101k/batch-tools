@@ -6,7 +6,10 @@ import { BatchState } from "./BatchState"
  *
  */
 export class BatchToolsBase<T, U> {
-    private readonly batches: Batch<T, U>[] = []
+    /**
+     * Batches which are no longer active, ie ready to send or later.
+     */
+    private batches: Batch<T, U>[] = []
 
     private activeBatch: Batch<T, U> | null = null
 
@@ -21,10 +24,32 @@ export class BatchToolsBase<T, U> {
             }
             this.activeBatch = new Batch(
                 this.func,
-                this.sendCondition
+                this.sendCondition,
+                this.batches.length + 1 > this.parallelLimit
             )
         }
         return this.activeBatch
+    }
+
+    /**
+     * Enables batches up to the parallel limit.
+     */
+    private enableBatches() {
+        // Clean out any no-longer-interesting batches.
+        this.batches = this.batches.filter(batch => batch.state < BatchState.Sent)
+
+        if(this.batches.length <= this.parallelLimit) {
+            for(const batch of this.batches) {
+                batch.delay = false
+            }
+            if(this.batches.length < this.parallelLimit && this.activeBatch) {
+                this.activeBatch.delay = false
+            }
+        } else {
+            for(const batch of this.batches.slice(0, this.parallelLimit)) {
+                batch.delay = false
+            }
+        }
     }
 
     /**
@@ -38,9 +63,11 @@ export class BatchToolsBase<T, U> {
      *
      * @param func
      * @param sendCondition
+     * @param parallelLimit
      */
     constructor(private func: (...ts: T[]) => Promise<U[]>,
         private sendCondition: BatchSendCondition = {},
+        private parallelLimit = Infinity
     ) {
 
     }
@@ -60,7 +87,11 @@ export class BatchToolsBase<T, U> {
             const batch = this.activeOrNewBatch()
             const result = batch.add(...ts)
             if(result.remaining < ts.length) {
-                promises.push(result.promise)
+                if(this.parallelLimit == Infinity) {
+                    promises.push(result.promise)
+                } else {
+                    promises.push(result.promise.finally(() => this.enableBatches()))
+                }
                 ts = ts.slice(ts.length - result.remaining)
             }
         }
