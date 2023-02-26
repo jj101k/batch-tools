@@ -93,6 +93,8 @@ export class BatchToolsBase<T, U> {
                     promises.push(result.promise.finally(() => this.enableBatches()))
                 }
                 ts = ts.slice(ts.length - result.remaining)
+            } else {
+                throw new Error("Internal error: batch could not accept any new items")
             }
         }
         return promises
