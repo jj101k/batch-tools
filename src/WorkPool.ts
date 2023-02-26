@@ -10,9 +10,9 @@ export class WorkPool {
     /**
      * @see activateItems()
      *
-     * This tracks how many items were filled in a second.
+     * This tracks how many items were filled in the period.
      */
-    private oneSecondFillStats: {startTs: number, count: number} | null = null
+    private periodFillStats: {startTs: number, count: number} | null = null
 
     /**
      *
@@ -41,10 +41,10 @@ export class WorkPool {
      */
     private get currentSecondFillStats() {
         const nowTs = new Date().valueOf()
-        if(!this.oneSecondFillStats || this.oneSecondFillStats.startTs < nowTs - this.maxFillRate.ms) {
-            this.oneSecondFillStats = {startTs: nowTs, count: 0}
+        if(!this.periodFillStats || this.periodFillStats.startTs < nowTs - this.maxFillRate.ms) {
+            this.periodFillStats = {startTs: nowTs, count: 0}
         }
-        return this.oneSecondFillStats
+        return this.periodFillStats
     }
 
     /**
