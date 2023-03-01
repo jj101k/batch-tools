@@ -40,9 +40,10 @@ export class WorkPool {
      *
      */
     private get currentSecondFillStats() {
-        const nowTs = new Date().valueOf()
-        if(!this.periodFillStats || this.periodFillStats.startTs < nowTs - this.maxFillRate.ms) {
+        if(!this.periodFillStats) {
+            const nowTs = new Date().valueOf()
             this.periodFillStats = {startTs: nowTs, count: 0}
+            setTimeout(() => this.periodFillStats = null, this.maxFillRate.ms)
         }
         return this.periodFillStats
     }
