@@ -41,7 +41,7 @@ export class WorkPool {
     /**
      *
      */
-    private backlog: Array<PromisableFunction> = []
+    private backlog: Array<() => Promise<any>> = []
 
     /**
      *
@@ -110,12 +110,12 @@ export class WorkPool {
         return new Promise((resolve, reject) => { // Called immediately
             this.backlog.push(() => {
                 try {
-                    const p = item() // Called and could throw
-                    Promise.resolve(p).then(resolve, reject) // Won't throw
+                    const p = Promise.resolve(item()) // Called and could throw
+                    p.then(resolve, reject) // Won't throw
                     return p
                 } catch(e) {
                     reject(e)
-                    throw e
+                    return Promise.reject(e)
                 }
             })
         })
