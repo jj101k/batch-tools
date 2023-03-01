@@ -111,9 +111,7 @@ export class WorkPool {
             this.backlog.push(() => {
                 try {
                     const p = item() // Called and could throw
-                    if(p && typeof p == "object" && "then" in p) {
-                        p.then(resolve, reject) // Won't throw
-                    }
+                    Promise.resolve(p).then(resolve, reject) // Won't throw
                     return p
                 } catch(e) {
                     reject(e)
