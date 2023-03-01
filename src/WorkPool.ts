@@ -1,5 +1,29 @@
 /**
- * This provides a work pool with a limited capacity.
+ *
+ */
+type PromisableFunction<T = any> = () => (Promise<T> | T)
+
+/**
+ * This provides a work pool with a limited work rate. Once it's busy, extra
+ * work will be queued and then dequeued when more capacity is ready.
+ *
+ * This is designed to work with BatchTools in cases where you don't benefit
+ * from more integrated pooling.
+ *
+ * Generally, you replace:
+ *
+ * await Promise.all([
+ *  foo(),
+ *  bar(),
+ * ])
+ *
+ * ...with:
+ *
+ * const pool = new WorkPool(1)
+ * await Promise.all([
+ *  pool.add(foo),
+ *  pool.add(bar)
+ * ])
  */
 export class WorkPool {
     /**
@@ -17,7 +41,7 @@ export class WorkPool {
     /**
      *
      */
-    private backlog: Array<() => (Promise<any> | any)> = []
+    private backlog: Array<PromisableFunction> = []
 
     /**
      *
@@ -79,6 +103,28 @@ export class WorkPool {
 
     /**
      *
+     * @param item
+     * @returns A promise
+     */
+    private pushPromise<T = any>(item: PromisableFunction<T>) {
+        return new Promise((resolve, reject) => { // Called immediately
+            this.backlog.push(() => {
+                try {
+                    const p = item() // Called and could throw
+                    if(p && typeof p == "object" && "then" in p) {
+                        p.then(resolve, reject) // Won't throw
+                    }
+                    return p
+                } catch(e) {
+                    reject(e)
+                    throw e
+                }
+            })
+        })
+    }
+
+    /**
+     *
      * @param capacity
      * @param maxFillRate
      */
@@ -88,12 +134,29 @@ export class WorkPool {
     }
 
     /**
+     * Adds one work item, may call it
+     *
+     * @param item
+     * @returns A promise
+     */
+    add<T = any>(item: PromisableFunction<T>) {
+        const p = this.pushPromise(item)
+        this.activateItems()
+        return p
+    }
+
+    /**
      * Adds some work items, may call some of them.
      *
      * @param items
+     * @returns A promise which resolves when all of them do
      */
-    add(...items: Array<() => (Promise<any> | any)>) {
-        this.backlog.push(...items)
+    addMulti<T = any>(items: Array<PromisableFunction<T>>) {
+        const ps: Array<Promise<any>> = []
+        for(const item of items) {
+            ps.push(this.pushPromise(item))
+        }
         this.activateItems()
+        return Promise.all(ps)
     }
 }
