@@ -147,7 +147,7 @@ export class WorkPool {
      * Adds some work items, may call some of them.
      *
      * @param items
-     * @returns A promise which resolves when all of them do
+     * @returns An array of promises
      */
     addMulti<T = any>(items: Array<PromisableFunction<T>>) {
         const ps: Array<Promise<any>> = []
@@ -155,6 +155,60 @@ export class WorkPool {
             ps.push(this.pushPromise(item))
         }
         this.activateItems()
-        return Promise.all(ps)
+        return ps
+    }
+
+    /**
+     * Convenience method - use if you want a pattern like:
+     *
+     * ```
+     * try {
+     *  const successes = await pool.all(items)
+     * } catch(e) {
+     *  // ...
+     * }
+     * ```
+     *
+     * @param items
+     * @returns
+     */
+    all<T = any>(items: Array<PromisableFunction<T>>) {
+        return Promise.all(this.addMulti(items))
+    }
+
+    /**
+     * Convenience method - use if you want a pattern like:
+     *
+     * ```
+     * const results = await pool.allSettled(items)
+     * ```
+     *
+     * @param items
+     * @returns
+     */
+    allSettled<T = any>(items: Array<PromisableFunction<T>>) {
+        return Promise.allSettled(this.addMulti(items))
+    }
+
+    /**
+     * Convenience method - use if you want a pattern like:
+     *
+     * ```
+     * try {
+     *  for await (const v of pool.iterate(items)) {
+     *      // Do something with v
+     *  }
+     * } catch(e) {
+     *  // ...
+     * }
+     * ```
+     *
+     * @param items
+     */
+    async *iterate<T = any>(items: Array<PromisableFunction<T>>) {
+        const promises = this.addMulti(items)
+        for(const p of promises) {
+            yield await p
+        }
     }
 }
