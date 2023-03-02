@@ -54,7 +54,8 @@ export class WorkPool {
      *
      */
     private set active(v) {
-        const change = this._active - v
+        const change = v - this._active
+        this._active = v
         if(change < 0) {
             this.activateItems()
         }
