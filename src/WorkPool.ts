@@ -95,8 +95,9 @@ export class WorkPool {
         for(; this.active < this.capacity; this.currentSecondFillStats.count++) {
             const currentSecondFillStats = this.currentSecondFillStats
             if(currentSecondFillStats.count >= this.maxFillRate.count) {
-                console.warn("WorkPool: Possible work loop, rescheduling to the end of the second")
-                // Reschedule to the end of the second.
+                console.warn(
+                    `WorkPool: Possible work loop, rescheduling to the end of the ${this.maxFillRate.ms}ms period`
+                )
                 const nowTs = new Date().valueOf()
                 setTimeout(() => this.activateItems(), currentSecondFillStats.startTs + this.maxFillRate.ms - nowTs)
                 break
