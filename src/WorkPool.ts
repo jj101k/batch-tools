@@ -32,6 +32,11 @@ export class WorkPool {
     private _active = 0
 
     /**
+     *
+     */
+    private debug = false
+
+    /**
      * @see activateItems()
      *
      * This tracks how many items were filled in the period.
@@ -54,9 +59,11 @@ export class WorkPool {
      *
      */
     private set active(v) {
+        this.debugLog(`Active to ${v}`)
         const change = v - this._active
         this._active = v
         if(change < 0) {
+            this.debugLog("Checking for more items")
             this.activateItems()
         }
     }
@@ -99,6 +106,16 @@ export class WorkPool {
             const p = item()
             this.active++
             p.finally(() => this.active--)
+        }
+    }
+
+    /**
+     *
+     * @param message
+     */
+    private debugLog(message: string) {
+        if (this.debug) {
+            console.log(message)
         }
     }
 
