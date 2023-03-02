@@ -34,6 +34,11 @@ export class WorkPool {
     /**
      *
      */
+    private avoidingLoop = false
+
+    /**
+     *
+     */
     private debug = false
 
     /**
@@ -93,13 +98,20 @@ export class WorkPool {
      */
     private activateItems() {
         for(; this.active < this.capacity; this.currentSecondFillStats.count++) {
+            if(this.avoidingLoop) {
+                return
+            }
             const currentSecondFillStats = this.currentSecondFillStats
             if(currentSecondFillStats.count >= this.maxFillRate.count) {
+                this.avoidingLoop = true
                 console.warn(
                     `WorkPool: Possible work loop, rescheduling to the end of the ${this.maxFillRate.ms}ms period`
                 )
                 const nowTs = new Date().valueOf()
-                setTimeout(() => this.activateItems(), currentSecondFillStats.startTs + this.maxFillRate.ms - nowTs)
+                setTimeout(() => {
+                    this.avoidingLoop = false
+                    this.activateItems()
+                }, currentSecondFillStats.startTs + this.maxFillRate.ms - nowTs)
                 break
             }
             const item = this.backlog.shift()
