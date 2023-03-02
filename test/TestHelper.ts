@@ -9,10 +9,14 @@ export class TestHelper {
     static comparableResults(results: Map<string, string>) {
         return [...results].sort(([a], [b]) => a.localeCompare(b))
     }
-    static async wait(time: number) {
-        if(this.debug) console.log(`Wait ${time}ms: start`)
+    /**
+     *
+     * @param milliseconds
+     */
+    static async pause(milliseconds: number) {
+        if(this.debug) console.log(`Wait ${milliseconds}ms: start`)
         try {
-            await new Promise(resolve => setTimeout(resolve, time))
+            await new Promise(resolve => setTimeout(resolve, milliseconds))
         } finally {
             if(this.debug) console.log("Wait finished")
         }
