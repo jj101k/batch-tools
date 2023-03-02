@@ -14,11 +14,11 @@ export class TestHelper {
      * @param milliseconds
      */
     static async pause(milliseconds: number) {
-        if(this.debug) console.log(`Wait ${milliseconds}ms: start`)
+        if(this.debug) console.log(`Pause: ${milliseconds}ms`)
         try {
             await new Promise(resolve => setTimeout(resolve, milliseconds))
         } finally {
-            if(this.debug) console.log("Wait finished")
+            if(this.debug) console.log("Pause finished")
         }
     }
 }
