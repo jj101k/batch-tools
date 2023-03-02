@@ -57,14 +57,6 @@ class BatchToolTestWrapper {
             i++
         }
     }
-    async wait(time: number) {
-        if(debug) console.log("Wait " + time + "ms: start")
-        try {
-            await new Promise(resolve => setTimeout(resolve, time))
-        } finally {
-            if(debug) console.log("Wait finished")
-        }
-    }
 }
 
 describe("Batch tools (iterable) are usable", () => {
@@ -74,9 +66,9 @@ describe("Batch tools (iterable) are usable", () => {
         const testWrapper = new BatchToolTestWrapper(consumer.fooBatchedTimeout)
         testWrapper.tryIterableBatchCall("a", "b")
         testWrapper.tryIterableBatchCall("c", "d", "e")
-        await testWrapper.wait(60)
+        await TestHelper.wait(60)
         // t+60, call added
-        await testWrapper.wait(60)
+        await TestHelper.wait(60)
         // t+120, batch 1 finished
         assert.equal(consumer.callCount, 1, "Expected number of calls made")
         assert.equal(testWrapper.results.size, 5, "All results are in")
@@ -91,18 +83,18 @@ describe("Batch tools (iterable) are usable", () => {
         const testWrapper = new BatchToolTestWrapper(consumer.fooBatchedLimit)
         testWrapper.tryIterableBatchCall("a", "b")
         testWrapper.tryIterableBatchCall("c", "d", "e")
-        await testWrapper.wait(5)
+        await TestHelper.wait(5)
         // t+5, one call issued.
         assert.equal(consumer.callCount, 1, "Expected number of calls made")
 
-        await testWrapper.wait(55)
+        await TestHelper.wait(55)
         // t+60, one call finished, another added.
         assert.equal(consumer.callCount, 2, "Expected number of calls made")
         assert.equal(testWrapper.results.size, 3, "All initial results are in")
 
         assert.deepEqual(TestHelper.comparableResults(testWrapper.results), TestHelper.expectedResults("abc"), "Results match (initial)")
 
-        await testWrapper.wait(60)
+        await TestHelper.wait(60)
         // t+120, both calls finished
         assert.equal(consumer.callCount, 2, "Expected number of calls made")
         assert.equal(testWrapper.results.size, 5, "All results are in")
@@ -117,18 +109,18 @@ describe("Batch tools (iterable) are usable", () => {
         const testWrapper = new BatchToolTestWrapper(consumer.fooBatchedLimit)
         testWrapper.tryIterableSingleCall("a", "b")
         testWrapper.tryIterableSingleCall("c", "d", "e")
-        await testWrapper.wait(5)
+        await TestHelper.wait(5)
         // t+5, one call issued.
         assert.equal(consumer.callCount, 1, "Expected number of calls made")
 
-        await testWrapper.wait(55)
+        await TestHelper.wait(55)
         // t+60, one call finished, another added.
         assert.equal(consumer.callCount, 2, "Expected number of calls made")
         assert.equal(testWrapper.results.size, 3, "All initial results are in")
 
         assert.deepEqual(TestHelper.comparableResults(testWrapper.results), TestHelper.expectedResults("abc"), "Results match (initial)")
 
-        await testWrapper.wait(60)
+        await TestHelper.wait(60)
         // t+120, both calls finished
         assert.equal(consumer.callCount, 2, "Expected number of calls made")
         assert.equal(testWrapper.results.size, 5, "All results are in")

@@ -62,14 +62,6 @@ class BatchToolTestWrapper {
         if(debug) console.log("Storing 1 result")
         this.results.set(n, r)
     }
-    async wait(time: number) {
-        if(debug) console.log("Wait " + time + "ms: start")
-        try {
-            await new Promise(resolve => setTimeout(resolve, time))
-        } finally {
-            if(debug) console.log("Wait finished")
-        }
-    }
 }
 
 describe("Batch tools are usable", () => {
@@ -79,19 +71,19 @@ describe("Batch tools are usable", () => {
         const testWrapper = new BatchToolTestWrapper(consumer.fooBatchedTimeout)
         testWrapper.trySingleCall("a")
         testWrapper.tryMultiCall("b", "c")
-        await testWrapper.wait(20)
+        await TestHelper.wait(20)
         // t+20, no call
         testWrapper.trySingleCall("d")
         testWrapper.tryMultiCall("e", "f")
-        await testWrapper.wait(20)
+        await TestHelper.wait(20)
         // t+40, no call
         testWrapper.trySingleCall("g")
         testWrapper.tryMultiCall("h", "i")
-        await testWrapper.wait(20)
+        await TestHelper.wait(20)
         // t+60, call 1 fired
         testWrapper.trySingleCall("j")
         testWrapper.tryMultiCall("k", "l")
-        await testWrapper.wait(300)
+        await TestHelper.wait(300)
         // t+360, both calls fired and returned
 
         assert.equal(consumer.callCount, 2, "Expected number of calls made")
@@ -108,17 +100,17 @@ describe("Batch tools are usable", () => {
         // More than 10!
         testWrapper.tryMultiCall(...items.slice(0, 5))
         testWrapper.tryMultiCall(...items.slice(5))
-        await testWrapper.wait(20)
+        await TestHelper.wait(20)
         // t+20, one call made and another one in the backlog.
         assert.equal(consumer.callCount, 1, "One call made immediately")
         assert.ok((consumer.fooBatchedLimit.activeBatchSize ?? 0) < 5, "The active batch is small & incomplete")
-        await testWrapper.wait(40)
+        await TestHelper.wait(40)
         // t+60, two calls made
         assert.equal(consumer.callCount, 2, "Two calls made after 1x timeout")
-        await testWrapper.wait(80)
+        await TestHelper.wait(80)
         // t+140, one call completed
         assert.equal(testWrapper.results.size, 5, "Some results are in")
-        await testWrapper.wait(100)
+        await TestHelper.wait(100)
         // t+250, all calls completed
         assert.equal(testWrapper.results.size, items.length, "All results are in")
 
@@ -132,25 +124,25 @@ describe("Batch tools are usable", () => {
         const testWrapper = new BatchToolTestWrapper(consumer.fooBatchedManual)
         testWrapper.trySingleCall("a")
         testWrapper.tryMultiCall("b", "c")
-        await testWrapper.wait(20)
+        await TestHelper.wait(20)
         // t+20, no call
         testWrapper.trySingleCall("d")
         testWrapper.tryMultiCall("e", "f")
-        await testWrapper.wait(20)
+        await TestHelper.wait(20)
         // t+40, no call
         testWrapper.trySingleCall("g")
         testWrapper.tryMultiCall("h", "i")
-        await testWrapper.wait(20)
+        await TestHelper.wait(20)
         // t+60, still no call
         testWrapper.trySingleCall("j")
         testWrapper.tryMultiCall("k", "l")
-        await testWrapper.wait(300)
+        await TestHelper.wait(300)
         // t+360, still no call.
 
         assert.equal(consumer.callCount, 0, "No calls made in advance")
         consumer.fooBatchedManual.send()
 
-        await testWrapper.wait(150) // Wait long enough for it to finish
+        await TestHelper.wait(150) // Wait long enough for it to finish
 
         assert.equal(consumer.callCount, 1, "Expected number of calls made")
         assert.deepEqual(TestHelper.comparableResults(testWrapper.results), TestHelper.expectedResults("abcdefghijkl"), "Results match")
@@ -166,19 +158,19 @@ describe("Batch tools are usable", () => {
         // More than 10!
         testWrapper.tryMultiCall(...items.slice(0, 3)) // 0 1 2
         testWrapper.tryMultiCall(...items.slice(3, 7)) // 3 4 5 6
-        await testWrapper.wait(5)
+        await TestHelper.wait(5)
         // t+5: At this point we have three complete batches (a, b), (c, d), (e,
         // f) and one incomplete batch (g). Only the first two batches will have
         // been sent
         assert.equal(consumer.callCount, 2, "Expected number of calls made")
-        await testWrapper.wait(55)
+        await TestHelper.wait(55)
         // t+60: The fourth batch became available, but was not sent.
         assert.equal(consumer.callCount, 2, "Expected number of calls made (no change)")
-        await testWrapper.wait(50)
+        await TestHelper.wait(50)
         // t+110: Results from the first two batches, last two batches are sent.
         assert.equal(consumer.callCount, 4, "All calls made")
         assert.equal(testWrapper.results.size, 3, "Partial results in - one response for two batches")
-        await testWrapper.wait(100)
+        await TestHelper.wait(100)
         // t+210: All results in
 
         assert.deepEqual(TestHelper.comparableResults(testWrapper.results), TestHelper.expectedResults("abcdefg"), "Results match")
