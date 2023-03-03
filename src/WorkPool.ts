@@ -34,6 +34,16 @@ export class WorkPool {
     /**
      *
      */
+    private avoidedLoopCount = 0
+
+    /**
+     *
+     */
+    private readonly avoidedLoopWarnLimit = 3
+
+    /**
+     *
+     */
     private avoidingLoop = false
 
     /**
@@ -104,16 +114,7 @@ export class WorkPool {
             }
             const currentSecondFillStats = this.currentSecondFillStats
             if(currentSecondFillStats.count >= this.maxFillRate.count) {
-                this.avoidingLoop = true
-                console.warn(
-                    `WorkPool: Possible work loop, rescheduling to the end of the ${this.maxFillRate.ms}ms period`
-                )
-                const nowTs = new Date().valueOf()
-                setTimeout(() => {
-                    this.avoidingLoop = false
-                    this.debugLog("Finished reschedule")
-                    this.activateItems()
-                }, currentSecondFillStats.startTs + this.maxFillRate.ms - nowTs)
+                this.avoidLoop(currentSecondFillStats)
                 break
             }
             const item = this.backlog.shift()
@@ -159,6 +160,28 @@ export class WorkPool {
                 }
             })
         })
+    }
+
+    /**
+     *
+     * @param currentSecondFillStats
+     */
+    private avoidLoop(currentSecondFillStats: {startTs: number, count: number}) {
+        this.avoidingLoop = true
+        this.avoidedLoopCount++
+        if(this.avoidedLoopCount < this.avoidedLoopWarnLimit) {
+            console.warn(
+                `WorkPool: Possible work loop, rescheduling to the end of the ${this.maxFillRate.ms}ms period`
+            )
+        } else if(this.avoidedLoopCount == this.avoidedLoopWarnLimit) {
+            console.warn(`WorkPool: Possible work loop, will not warn again`)
+        }
+        const nowTs = new Date().valueOf()
+        setTimeout(() => {
+            this.avoidingLoop = false
+            this.debugLog("Finished reschedule")
+            this.activateItems()
+        }, currentSecondFillStats.startTs + this.maxFillRate.ms - nowTs)
     }
 
     /**
