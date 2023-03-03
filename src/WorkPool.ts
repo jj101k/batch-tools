@@ -116,9 +116,16 @@ export class WorkPool {
             }
             const item = this.backlog.shift()
             if(!item) break
+
+            const oldActive = this.active
+            try {
+                this.active = oldActive + 1
             const p = item()
-            this.active++
             p.finally(() => this.active--)
+            } catch(e) {
+                this.active = oldActive
+                throw e
+            }
         }
     }
 
