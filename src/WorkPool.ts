@@ -98,6 +98,7 @@ export class WorkPool {
      */
     private activateItems() {
         for(; this.active < this.capacity; this.currentSecondFillStats.count++) {
+            this.debugLog("Activate loop")
             if(this.avoidingLoop) {
                 return
             }
@@ -110,6 +111,7 @@ export class WorkPool {
                 const nowTs = new Date().valueOf()
                 setTimeout(() => {
                     this.avoidingLoop = false
+                    this.debugLog("Finished reschedule")
                     this.activateItems()
                 }, currentSecondFillStats.startTs + this.maxFillRate.ms - nowTs)
                 break
@@ -120,8 +122,8 @@ export class WorkPool {
             const oldActive = this.active
             try {
                 this.active = oldActive + 1
-            const p = item()
-            p.finally(() => this.active--)
+                const p = item()
+                p.finally(() => this.active--)
             } catch(e) {
                 this.active = oldActive
                 throw e
