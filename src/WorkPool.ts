@@ -29,7 +29,12 @@ export class WorkPool {
     /**
      *
      */
-    private _active = 0
+    private activatedJobs = 0
+
+    /**
+     *
+     */
+    private readonly _activeJobs = new Set<number>()
 
     /**
      *
@@ -67,20 +72,7 @@ export class WorkPool {
      *
      */
     private get active() {
-        return this._active
-    }
-
-    /**
-     *
-     */
-    private set active(v) {
-        this.debugLog(`Active to ${v}`)
-        const change = v - this._active
-        this._active = v
-        if(change < 0) {
-            this.debugLog("Checking for more items")
-            this.activateItems()
-        }
+        return this._activeJobs.size
     }
 
     /**
@@ -120,16 +112,35 @@ export class WorkPool {
             const item = this.backlog.shift()
             if(!item) break
 
-            const oldActive = this.active
+            const id = this.activatedJobs++
+            this.addActiveJob(id)
+
             try {
-                this.active = oldActive + 1
                 const p = item()
-                p.finally(() => this.active--)
+                p.finally(() => this.removeActiveJob(id))
             } catch(e) {
-                this.active = oldActive
+                this.removeActiveJob(id)
                 throw e
             }
         }
+    }
+
+    /**
+     *
+     * @param id
+     */
+    private addActiveJob(id: number) {
+        this._activeJobs.add(id)
+    }
+
+    /**
+     *
+     * @param id
+     */
+    private removeActiveJob(id: number) {
+        this._activeJobs.delete(id)
+        this.debugLog("Checking for more items")
+        this.activateItems()
     }
 
     /**
