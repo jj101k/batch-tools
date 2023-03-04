@@ -30,19 +30,25 @@ describe("Work pool", () => {
     })
     it("can handle excessive overuse", async () => {
         let c = 0
-        const action = () => {if(c < 100) {c++; pool.add(action); pool.add(action)}}
+        const action = () => {if(c < 50) {c++; pool.add(action); pool.add(action)}}
         pool.add(action)
         await TestHelper.pause(50)
         assert.equal(c, 10, "only the work within the work rate is complete")
         await TestHelper.pause(1000)
-        assert.equal(c, 100, "all work is eventually complete")
+        assert.equal(c, 50, "all work is eventually complete")
     })
+    it("can terminate after excessive overuse", async function() {
+        this.slow(4000)
+        this.timeout(5000)
         let c = 0
-        const action = () => {if(c < 100) {c++; pool.add(action); pool.add(action)}}
+        const action = () => {if(c < 500) {c++; pool.add(action); pool.add(action)}}
         pool.add(action)
         await TestHelper.pause(50)
         assert.equal(c, 10, "only the work within the work rate is complete")
         await TestHelper.pause(1000)
-        assert.equal(c, 100, "all work is eventually complete")
+        assert.ok(c <= 100, "limited work is eventually complete")
+        let last = c
+        await TestHelper.pause(1000)
+        assert.equal(c, last, "no further work is done")
     })
 })

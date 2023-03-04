@@ -44,6 +44,11 @@ export class WorkPool {
     /**
      *
      */
+    private readonly avoidedLoopAbortLimit = 10
+
+    /**
+     *
+     */
     private readonly avoidedLoopWarnLimit = 3
 
     /**
@@ -185,7 +190,10 @@ export class WorkPool {
                 `WorkPool: Possible work loop, rescheduling to the end of the ${this.maxActivationRate.ms}ms period`
             )
         } else if(this.avoidedLoopCount == this.avoidedLoopWarnLimit) {
-            console.warn(`WorkPool: Possible work loop, will not warn again`)
+            console.warn(`WorkPool: Possible work loop, will not warn again, but will abort if this continues`)
+        } else if(this.avoidedLoopCount >= this.avoidedLoopAbortLimit) {
+            console.error(`WorkPool: Too many work loops, aborting`)
+            this.backlog = []
         }
         const nowTs = new Date().valueOf()
         setTimeout(() => {
