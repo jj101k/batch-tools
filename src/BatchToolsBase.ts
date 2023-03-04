@@ -82,7 +82,7 @@ export class BatchToolsBase<T, U> {
      * @param ts
      * @returns
      */
-    protected getBatchPromises(...ts: T[]): Promise<U[]>[] {
+    protected getBatchPromises(...ts: T[]) {
         const promises: Promise<U[]>[] = []
         while(ts.length) {
             const batch = this.activeOrNewBatch()
