@@ -31,6 +31,11 @@ export class WorkPool {
     /**
      *
      */
+    private aborted = false
+
+    /**
+     *
+     */
     private activatedJobs = 0
 
     /**
@@ -220,6 +225,7 @@ export class WorkPool {
      * This clears & rejects the backlog
      */
     abort() {
+        this.aborted = true
         for(const tp of this.backlog) {
             tp.cancel()
         }
@@ -231,9 +237,13 @@ export class WorkPool {
      * get a promise.
      *
      * @param item
+     * @throws
      * @returns A promise
      */
     add<T = any>(item: PromisableFunction<T>) {
+        if(this.aborted) {
+            throw new Error("Cannot add - aborted")
+        }
         const p = this.pushPromise(item)
         this.activateItems()
         return p
@@ -243,9 +253,13 @@ export class WorkPool {
      * Adds some work items, may call some of them.
      *
      * @param items
+     * @throws
      * @returns An array of promises
      */
     addMulti<T = any>(items: Array<PromisableFunction<T>>) {
+        if(this.aborted) {
+            throw new Error("Cannot add - aborted")
+        }
         const ps: Array<Promise<any>> = []
         for(const item of items) {
             ps.push(this.pushPromise(item))
