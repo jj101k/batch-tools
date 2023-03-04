@@ -4,7 +4,7 @@ import { Cancelled } from "./Errors"
  * This is a lightweight wrapper around a promise to give you something which
  * won't run immediately but will on request.
  */
-export class TriggerPromise<T> implements PromiseLike<T> {
+export class TriggerPromise<T> implements Promise<T> {
     /**
      *
      */
@@ -19,6 +19,13 @@ export class TriggerPromise<T> implements PromiseLike<T> {
      *
      */
     private resolve!: (value: any) => void
+
+    /**
+     *
+     */
+    get [Symbol.toStringTag]() {
+        return "TriggerPromise"
+    }
 
     /**
      *
@@ -47,6 +54,15 @@ export class TriggerPromise<T> implements PromiseLike<T> {
 
     /**
      *
+     * @param onrejected
+     * @returns
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | null | undefined): Promise<T | TResult> {
+        return this.promise.catch(onrejected)
+    }
+
+    /**
+     *
      * @param onfinish
      * @returns
      */
@@ -60,7 +76,7 @@ export class TriggerPromise<T> implements PromiseLike<T> {
      * @param onrejected
      * @returns
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | null | undefined, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined): PromiseLike<TResult1 | TResult2> {
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | null | undefined, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined): Promise<TResult1 | TResult2> {
         return this.promise.then(onfulfilled, onrejected)
     }
 }
