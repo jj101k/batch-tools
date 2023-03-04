@@ -11,7 +11,7 @@ export class TriggerPromise<T> implements PromiseLike<T> {
     /**
      *
      */
-    private reject!: () => void
+    private reject!: (error?: any) => void
 
     /**
      *
@@ -40,7 +40,7 @@ export class TriggerPromise<T> implements PromiseLike<T> {
      * Give up on the work.
      */
     cancel() {
-        this.reject()
+        this.reject(new Error("Cancelled"))
     }
 
     /**
