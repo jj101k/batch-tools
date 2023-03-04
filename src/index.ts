@@ -1,4 +1,6 @@
 export * from "./BatchTools"
 export * from "./BatchToolsIterable"
+export * as Errors from "./Errors"
 export * from "./LoadBuffer"
+export * from "./TriggerPromise"
 export * from "./WorkPool"

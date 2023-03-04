@@ -1,3 +1,5 @@
+import { InvalidState } from "./Errors"
+
 /**
  * This provides a loading buffer which will hang around for `delayMs` milliseconds
  * before resolving with the accumulated array of values.
@@ -18,7 +20,7 @@ export class LoadSelectionBuffer<I> extends Promise<I[]> {
      */
     private resolve: (value: I[]) => void = (value) => {
         // Can't happen unless someone messes with the Promise constructor
-        throw new Error("Internal error: resolved too early")
+        throw new InvalidState("Internal error: resolved too early")
     };
 
     /**
@@ -36,9 +38,9 @@ export class LoadSelectionBuffer<I> extends Promise<I[]> {
      */
     private assertIsWritable() {
         if (this.aborted) {
-            throw new Error(`Selection can no longer be modified after being aborted`)
+            throw new InvalidState(`Selection can no longer be modified after being aborted`)
         } else if (this.resolved) {
-            throw new Error(`Selection can no longer be modified after being resolved`)
+            throw new InvalidState(`Selection can no longer be modified after being resolved`)
         }
     }
 

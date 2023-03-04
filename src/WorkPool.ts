@@ -1,3 +1,4 @@
+import { InvalidState } from "./Errors"
 import { TriggerPromise } from "./TriggerPromise"
 
 /**
@@ -242,7 +243,7 @@ export class WorkPool {
      */
     add<T = any>(item: PromisableFunction<T>) {
         if(this.aborted) {
-            throw new Error("Cannot add - aborted")
+            throw new InvalidState("Cannot add - aborted")
         }
         const p = this.pushPromise(item)
         this.activateItems()
@@ -258,7 +259,7 @@ export class WorkPool {
      */
     addMulti<T = any>(items: Array<PromisableFunction<T>>) {
         if(this.aborted) {
-            throw new Error("Cannot add - aborted")
+            throw new InvalidState("Cannot add - aborted")
         }
         const ps: Array<Promise<any>> = []
         for(const item of items) {

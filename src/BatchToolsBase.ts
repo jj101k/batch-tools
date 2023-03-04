@@ -1,6 +1,7 @@
 import { Batch } from "./Batch"
 import { BatchSendCondition } from "./BatchSendCondition"
 import { BatchState } from "./BatchState"
+import { LimitExceeded } from "./Errors"
 
 /**
  *
@@ -94,7 +95,7 @@ export class BatchToolsBase<T, U> {
                 }
                 ts = ts.slice(ts.length - result.remaining)
             } else {
-                throw new Error("Internal error: batch could not accept any new items")
+                throw new LimitExceeded("Internal error: batch could not accept any new items")
             }
         }
         return promises

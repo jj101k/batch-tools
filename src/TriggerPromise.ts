@@ -1,3 +1,5 @@
+import { Cancelled } from "./Errors"
+
 /**
  * This is a lightweight wrapper around a promise to give you something which
  * won't run immediately but will on request.
@@ -40,7 +42,7 @@ export class TriggerPromise<T> implements PromiseLike<T> {
      * Give up on the work.
      */
     cancel() {
-        this.reject(new Error("Cancelled"))
+        this.reject(new Cancelled())
     }
 
     /**

@@ -1,5 +1,6 @@
 import { BatchState } from "./BatchState"
 import { BatchSendCondition } from "./BatchSendCondition"
+import { InvalidState } from "./Errors"
 
 /**
  * A promise that handles some of the work given
@@ -46,7 +47,7 @@ export class Batch<T, U> {
         if(v == this._state) {
             return // Nothing to do
         } else if (v < this._state) {
-            throw new Error("State may only move forwards")
+            throw new InvalidState("State may only move forwards")
         }
         this._state = v
 
@@ -56,10 +57,10 @@ export class Batch<T, U> {
 
         if(this._state == BatchState.Sent) {
             if (!this.currentAction) {
-                throw new Error("Internal error: batch cannot be finished before it's started")
+                throw new InvalidState("Internal error: batch cannot be finished before it's started")
             }
             if (!this.resolve) {
-                throw new Error("Too early to finish")
+                throw new InvalidState("Too early to finish")
             }
             this.debugLog("Resolve")
             this.resolve(null)
