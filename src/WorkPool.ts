@@ -1,3 +1,5 @@
+import { TriggerPromise } from "./TriggerPromise"
+
 /**
  *
  */
@@ -71,7 +73,7 @@ export class WorkPool {
     /**
      *
      */
-    private backlog: Array<() => Promise<any>> = []
+    private backlog: Array<TriggerPromise<any>> = []
 
     /**
      *
@@ -119,10 +121,10 @@ export class WorkPool {
 
             const id = this.activatedJobs++
             this.addActiveJob(id)
+            item.finally(() => this.removeActiveJob(id))
 
             try {
-                const p = item()
-                p.finally(() => this.removeActiveJob(id))
+                item.activate()
             } catch(e) {
                 this.removeActiveJob(id)
                 throw e
@@ -165,16 +167,9 @@ export class WorkPool {
      */
     private pushPromise<T = any>(item: PromisableFunction<T>) {
         return new Promise((resolve, reject) => { // Called immediately
-            this.backlog.push(() => {
-                try {
-                    const p = Promise.resolve(item()) // Called and could throw
-                    p.then(resolve, reject) // Won't throw
-                    return p
-                } catch(e) {
-                    reject(e)
-                    return Promise.reject(e)
-                }
-            })
+            const tp = new TriggerPromise(item)
+            tp.then(resolve, reject)
+            this.backlog.push(tp)
         })
     }
 
@@ -185,15 +180,19 @@ export class WorkPool {
     private avoidLoop(currentPeriodActivationStats: {startTs: number, count: number}) {
         this.avoidingLoop = true
         this.avoidedLoopCount++
+
+        if(this.avoidedLoopCount >= this.avoidedLoopAbortLimit) {
+            console.error(`WorkPool: Too many work loops, aborting`)
+            this.abort()
+            return
+        }
+
         if(this.avoidedLoopCount < this.avoidedLoopWarnLimit) {
             console.warn(
                 `WorkPool: Possible work loop, rescheduling to the end of the ${this.maxActivationRate.ms}ms period`
             )
         } else if(this.avoidedLoopCount == this.avoidedLoopWarnLimit) {
             console.warn(`WorkPool: Possible work loop, will not warn again, but will abort if this continues`)
-        } else if(this.avoidedLoopCount >= this.avoidedLoopAbortLimit) {
-            console.error(`WorkPool: Too many work loops, aborting`)
-            this.backlog = []
         }
         const nowTs = new Date().valueOf()
         setTimeout(() => {
@@ -215,6 +214,16 @@ export class WorkPool {
     constructor(public readonly capacity: number,
         private readonly maxActivationRate: {count: number, ms: number} = {count: 10_000, ms: 1_000},
     ) {
+    }
+
+    /**
+     * This clears & rejects the backlog
+     */
+    abort() {
+        for(const tp of this.backlog) {
+            tp.cancel()
+        }
+        this.backlog = []
     }
 
     /**

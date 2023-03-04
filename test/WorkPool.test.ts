@@ -40,9 +40,18 @@ describe("Work pool", () => {
     it("can terminate after excessive overuse", async function() {
         this.slow(4000)
         this.timeout(5000)
+        let succeeded = 0
+        let started = 0
+        let failed = 0
         let c = 0
-        const action = () => {if(c < 500) {c++; pool.add(action); pool.add(action)}}
-        pool.add(action)
+        const action = () => {if(c < 500) {
+            c++
+            started += 2
+            pool.add(action).then(() => succeeded++, () => failed++)
+            pool.add(action).then(() => succeeded++, () => failed++)
+        }}
+        started++
+        pool.add(action).then(() => succeeded++, () => failed++)
         await TestHelper.pause(50)
         assert.equal(c, 10, "only the work within the work rate is complete")
         await TestHelper.pause(1000)
@@ -50,5 +59,6 @@ describe("Work pool", () => {
         let last = c
         await TestHelper.pause(1000)
         assert.equal(c, last, "no further work is done")
+        assert.equal(failed + succeeded, started, "All started work returned a state")
     })
 })
