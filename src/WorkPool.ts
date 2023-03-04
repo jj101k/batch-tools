@@ -61,7 +61,7 @@ export class WorkPool {
      *
      * This tracks how many items were filled in the period.
      */
-    private periodFillStats: {startTs: number, count: number} | null = null
+    private periodActivationStats: {startTs: number, count: number} | null = null
 
     /**
      *
@@ -78,13 +78,13 @@ export class WorkPool {
     /**
      *
      */
-    private get currentSecondFillStats() {
-        if(!this.periodFillStats) {
+    private get currentPeriodActivationStats() {
+        if(!this.periodActivationStats) {
             const nowTs = new Date().valueOf()
-            this.periodFillStats = {startTs: nowTs, count: 0}
-            setTimeout(() => this.periodFillStats = null, this.maxFillRate.ms)
+            this.periodActivationStats = {startTs: nowTs, count: 0}
+            setTimeout(() => this.periodActivationStats = null, this.maxActivationRate.ms)
         }
-        return this.periodFillStats
+        return this.periodActivationStats
     }
 
     /**
@@ -99,14 +99,14 @@ export class WorkPool {
      * we limit that.
      */
     private activateItems() {
-        for(; this.active < this.capacity; this.currentSecondFillStats.count++) {
+        for(; this.active < this.capacity; this.currentPeriodActivationStats.count++) {
             this.debugLog("Activate loop")
             if(this.avoidingLoop) {
                 return
             }
-            const currentSecondFillStats = this.currentSecondFillStats
-            if(currentSecondFillStats.count >= this.maxFillRate.count) {
-                this.avoidLoop(currentSecondFillStats)
+            const currentPeriodActivationStats = this.currentPeriodActivationStats
+            if(currentPeriodActivationStats.count >= this.maxActivationRate.count) {
+                this.avoidLoop(currentPeriodActivationStats)
                 break
             }
             const item = this.backlog.shift()
@@ -175,14 +175,14 @@ export class WorkPool {
 
     /**
      *
-     * @param currentSecondFillStats
+     * @param currentPeriodActivationStats
      */
-    private avoidLoop(currentSecondFillStats: {startTs: number, count: number}) {
+    private avoidLoop(currentPeriodActivationStats: {startTs: number, count: number}) {
         this.avoidingLoop = true
         this.avoidedLoopCount++
         if(this.avoidedLoopCount < this.avoidedLoopWarnLimit) {
             console.warn(
-                `WorkPool: Possible work loop, rescheduling to the end of the ${this.maxFillRate.ms}ms period`
+                `WorkPool: Possible work loop, rescheduling to the end of the ${this.maxActivationRate.ms}ms period`
             )
         } else if(this.avoidedLoopCount == this.avoidedLoopWarnLimit) {
             console.warn(`WorkPool: Possible work loop, will not warn again`)
@@ -192,21 +192,26 @@ export class WorkPool {
             this.avoidingLoop = false
             this.debugLog("Finished reschedule")
             this.activateItems()
-        }, currentSecondFillStats.startTs + this.maxFillRate.ms - nowTs)
+        }, currentPeriodActivationStats.startTs + this.maxActivationRate.ms - nowTs)
     }
 
     /**
      *
-     * @param capacity
-     * @param maxFillRate
+     * @param capacity How many items are worked on at once (or, strictly, in
+     * parallel).
+     * @param maxActivationRate You shouldn't need to change this - it's a cap
+     * on the rate with which jobs are activated, beyond which a delay will be
+     * added in. If you're hitting the overuse warning, you should generally set
+     * both numbers higher than the default.
      */
     constructor(public readonly capacity: number,
-        private readonly maxFillRate: {count: number, ms: number} = {count: 1_000_000, ms: 1_000},
+        private readonly maxActivationRate: {count: number, ms: number} = {count: 10_000, ms: 1_000},
     ) {
     }
 
     /**
-     * Adds one work item, may call it
+     * Adds one work item, may call it immediately, but in any case you'll
+     * get a promise.
      *
      * @param item
      * @returns A promise

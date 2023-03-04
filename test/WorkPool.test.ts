@@ -28,7 +28,15 @@ describe("Work pool", () => {
         await TestHelper.pause(100)
         assert.equal(c, 20, "all work is eventually complete")
     })
-    it("can handle terminate after excessive overuse", async () => {
+    it("can handle excessive overuse", async () => {
+        let c = 0
+        const action = () => {if(c < 100) {c++; pool.add(action); pool.add(action)}}
+        pool.add(action)
+        await TestHelper.pause(50)
+        assert.equal(c, 10, "only the work within the work rate is complete")
+        await TestHelper.pause(1000)
+        assert.equal(c, 100, "all work is eventually complete")
+    })
         let c = 0
         const action = () => {if(c < 100) {c++; pool.add(action); pool.add(action)}}
         pool.add(action)
