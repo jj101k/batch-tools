@@ -155,20 +155,19 @@ export class Batch<T, U> {
     /**
      * Adds some items to the batch
      *
-     * @param ts
+     * @param items
      * @returns A promise resolving to the completed work, and a number of
      * unhandled items
      */
-    add(...ts: T[]): PartialPromise<U[]> {
+    add(...items: T[]): PartialPromise<U[]> {
         this.debugLog("Add")
         if (this.intState > BatchState.ReadyToSend) {
             this.debugLog("Cannot add")
             return {
                 promise: Promise.resolve([]),
-                remaining: ts.length,
+                remaining: items.length,
             }
         }
-        const offset = this.backlog.length
         if (this.intState == BatchState.Initial && this.sendCondition.timeoutMs !== undefined) {
             setTimeout(() => {
                 this.debugLog("Time out")
@@ -177,24 +176,25 @@ export class Batch<T, U> {
         }
         this.intState = BatchState.Waiting
 
-        const promise = this.triggerPromise.then(results => results.slice(offset, offset + ts.length))
+        const offset = this.backlog.length
+        const promise = this.triggerPromise.then(results => results.slice(offset, offset + items.length))
 
         let remainingLength: number
         if (this.sendCondition.limit) {
             const space = this.sendCondition.limit - this.backlog.length
-            this.debugLog(`${ts.length} compare ${space}`)
-            if (ts.length < space) {
+            this.debugLog(`${items.length} compare ${space}`)
+            if (items.length < space) {
                 remainingLength = 0
-                this.backlog.push(...ts)
+                this.backlog.push(...items)
             } else {
-                remainingLength = ts.length - space
+                remainingLength = items.length - space
                 this.debugLog("Over")
-                this.backlog.push(...ts.slice(0, space))
+                this.backlog.push(...items.slice(0, space))
                 this.finish()
             }
         } else {
             remainingLength = 0
-            this.backlog.push(...ts)
+            this.backlog.push(...items)
         }
         this.debugLog(`Loaded with ${remainingLength} remaining`)
         return {
