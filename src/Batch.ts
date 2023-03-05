@@ -1,6 +1,7 @@
 import { BatchState } from "./BatchState"
 import { BatchSendCondition } from "./BatchSendCondition"
 import { InvalidState } from "./Errors"
+import { TriggerPromise } from "./TriggerPromise"
 
 /**
  * Some work handled by a promise, some not.
@@ -33,12 +34,6 @@ export class Batch<T, U> {
     private backlog: T[] = []
 
     /**
-     * The action to fulfill the backlog. Once this is set, the batch handling
-     * is in progress.
-     */
-    private currentAction: Promise<U[]> | null = null
-
-    /**
      *
      */
     private debug = false
@@ -54,9 +49,9 @@ export class Batch<T, U> {
     private _intState: BatchState = BatchState.Initial
 
     /**
-     * This will trigger the action after it's been started.
+     *
      */
-    private resolve: ((value: any) => any) | null = null
+    private triggerPromise: TriggerPromise<U[]>
 
     /**
      * The internal state. Unlike the external view of the same, this is
@@ -82,14 +77,8 @@ export class Batch<T, U> {
         }
 
         if (this._intState == BatchState.Sent) {
-            if (!this.currentAction) {
-                throw new InvalidState("Internal error: batch cannot be finished before it's started")
-            }
-            if (!this.resolve) {
-                throw new InvalidState("Too early to finish")
-            }
             this.debugLog("Resolve")
-            this.resolve(null)
+            this.triggerPromise.activate()
         }
     }
 
@@ -101,41 +90,6 @@ export class Batch<T, U> {
         if (this.debug) {
             console.log(message)
         }
-    }
-
-    /**
-     * This should only be called once.
-     *
-     * @returns
-     */
-    private async performAction() {
-        this.intState = BatchState.Waiting
-        await new Promise(resolve => this.resolve = resolve)
-        try {
-            this.debugLog("Resolved")
-            return await this.func(...this.backlog)
-        } finally {
-            this.debugLog("Post-resolve")
-            this.intState = BatchState.Finished
-        }
-    }
-
-    /**
-     *
-     * @returns
-     */
-    private start() {
-        if (!this.currentAction) {
-            this.debugLog("Setup")
-            this.currentAction = this.performAction()
-            if (this.sendCondition.timeoutMs !== undefined) {
-                setTimeout(() => {
-                    this.debugLog("Time out")
-                    this.finish()
-                }, this.sendCondition.timeoutMs)
-            }
-        }
-        return this.currentAction
     }
 
     /**
@@ -192,6 +146,11 @@ export class Batch<T, U> {
         private sendCondition: BatchSendCondition = {}, delay = false
     ) {
         this._delay = delay
+        this.triggerPromise = new TriggerPromise(() => func(...this.backlog))
+        this.triggerPromise.finally(() => {
+            this.debugLog("Post-resolve")
+            this.intState = BatchState.Finished
+        })
     }
 
     /**
@@ -209,7 +168,15 @@ export class Batch<T, U> {
             }
         }
         const offset = this.backlog.length
-        const promise = this.start().then(results => results.slice(offset, offset + ts.length))
+        if (this.intState == BatchState.Initial && this.sendCondition.timeoutMs !== undefined) {
+            setTimeout(() => {
+                this.debugLog("Time out")
+                this.finish()
+            }, this.sendCondition.timeoutMs)
+        }
+        this.intState = BatchState.Waiting
+
+        const promise = this.triggerPromise.then(results => results.slice(offset, offset + ts.length))
 
         let remainingLength: number
         if (this.sendCondition.limit) {
