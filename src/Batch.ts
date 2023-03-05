@@ -146,8 +146,7 @@ export class Batch<T, U> {
         private sendCondition: BatchSendCondition = {}, delay = false
     ) {
         this._delay = delay
-        this.triggerPromise = new TriggerPromise(() => func(...this.backlog))
-        this.triggerPromise.finally(() => {
+        this.triggerPromise = new TriggerPromise(() => func(...this.backlog)).finally(() => {
             this.debugLog("Post-resolve")
             this.intState = BatchState.Finished
         })
