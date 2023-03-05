@@ -67,7 +67,8 @@ export class TriggerPromise<T> implements Promise<T> {
      * @returns
      */
     finally(onfinish: () => any) {
-        return this.promise.finally(onfinish)
+        this.promise.finally(onfinish)
+        return this
     }
 
     /**
