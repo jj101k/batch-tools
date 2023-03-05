@@ -1,7 +1,7 @@
 import { LoadBuffer } from "./LoadBuffer"
-import { LoadBufferAny } from "./LoadBufferAny"
 import { PseudoMap } from "./PseudoMap"
 import { LoadBufferCollection } from "./LoadBufferCollection"
+import { LoadSelectionBufferAny } from "./LoadSelectionBufferAny"
 
 /**
  * @see LoadBufferCollection
@@ -13,7 +13,7 @@ export class LoadBufferCollectionAny<K extends string | number, R, I> extends Lo
     protected items = new PseudoMap<K, LoadBuffer<I, R>, I>(this.getKey);
 
     protected createLoadBuffer(): LoadBuffer<I, R> {
-        return new LoadBufferAny(this.getKey, this.then)
+        return new LoadBuffer(this.then, new LoadSelectionBufferAny(this.getKey))
     }
 
     /**

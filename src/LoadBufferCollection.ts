@@ -2,7 +2,7 @@ import { LoadBuffer } from "./LoadBuffer"
 
 /**
  * This applies where your load buffers have a meaningful size limit. If they
- * don't, you can just use LoadBufferPrimitive or LoadBufferAny.
+ * don't, you can just use LoadBuffer.
  *
  * This wraps multiple load buffers so that they can be sent serially or with
  * limited parallelism.

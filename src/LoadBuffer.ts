@@ -9,8 +9,8 @@ import { LoadSelectionBuffer } from "./LoadSelectionBuffer"
  *
  * This wraps the underlying promise.
  *
- * This class operates on primitives, eg. IDs, there is a class LoadBufferAny if
- * you want to operate on raw objects.
+ * This class operates on primitives, eg. IDs, by default. If you want to
+ * operate on other object types, pass in a LoadSelectionBufferAny or similar.
  *
  * This has a promise interface to make it easier to work with.
  */
