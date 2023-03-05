@@ -142,7 +142,7 @@ export class Batch<T, U> {
      * it effectively condition-limited. Set "delay" to false when no longer
      * needed.
      */
-    constructor(private func: (...ts: T[]) => Promise<U[]>,
+    constructor(func: (...ts: T[]) => Promise<U[]>,
         private sendCondition: BatchSendCondition = {}, delay = false
     ) {
         this._delay = delay
