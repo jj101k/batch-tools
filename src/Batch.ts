@@ -161,7 +161,9 @@ export class Batch<T, U> {
      * unhandled items
      */
     add(...ts: T[]): PartialPromise<U[]> {
+        this.debugLog("Add")
         if (this.intState > BatchState.ReadyToSend) {
+            this.debugLog("Cannot add")
             return {
                 promise: Promise.resolve([]),
                 remaining: ts.length,
@@ -195,6 +197,7 @@ export class Batch<T, U> {
             remainingLength = 0
             this.backlog.push(...ts)
         }
+        this.debugLog(`Loaded with ${remainingLength} remaining`)
         return {
             promise,
             remaining: remainingLength,
