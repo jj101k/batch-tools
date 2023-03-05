@@ -103,7 +103,7 @@ describe("Batch tools are usable", () => {
         await TestHelper.pause(20)
         // t+20, one call made and another one in the backlog.
         assert.equal(consumer.callCount, 1, "One call made immediately")
-        assert.ok((consumer.fooBatchedLimit.activeBatchSize ?? 0) < 5, "The active batch is small & incomplete")
+        assert.ok((consumer.fooBatchedLimit.lastActiveBatchSize ?? 0) < 5, "The active batch is small & incomplete")
         await TestHelper.pause(40)
         // t+60, two calls made
         assert.equal(consumer.callCount, 2, "Two calls made after 1x timeout")

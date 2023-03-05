@@ -1,4 +1,4 @@
-import { BatchToolsBase } from "./BatchToolsBase"
+import { BatchToolsSingle } from "./BatchToolsSingle"
 
 /**
  * This is a variation on BatchTools which supports returning the results in the
@@ -6,7 +6,7 @@ import { BatchToolsBase } from "./BatchToolsBase"
  * limited-size buffer immediately and want those first results ASAP rather than
  * after a timeout.
  */
-export class BatchToolsIterable<T, U> extends BatchToolsBase<T, U> {
+export class BatchToolsIterable<T, U> extends BatchToolsSingle<T, U> {
     /**
      * Adds multiple items to one or more batches. Returns an iterator which
      * will resolve with each batch.

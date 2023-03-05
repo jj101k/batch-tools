@@ -1,6 +1,8 @@
 import { LoadSelectionBuffer } from "./LoadSelectionBuffer"
 
 /**
+ * @see Batch which does something similar
+ *
  * This provides a loading buffer which will hang around for `delayMs`
  * milliseconds before resolving with the result. This is intended for
  * multiplexing what would otherwise be many separate calls together.
@@ -9,6 +11,8 @@ import { LoadSelectionBuffer } from "./LoadSelectionBuffer"
  *
  * This class operates on primitives, eg. IDs, there is a class LoadBufferAny if
  * you want to operate on raw objects.
+ *
+ * This has a promise interface to make it easier to work with.
  */
 export class LoadBuffer<K, R> implements Promise<Map<K, R>> {
     /**
@@ -36,7 +40,10 @@ export class LoadBuffer<K, R> implements Promise<Map<K, R>> {
 
     public readonly catch: Promise<Map<K, R>>["catch"]
 
-    public readonly finally: Promise<Map<K, R>>["finally"]
+    finally(onfinally?: (() => void) | null | undefined): Promise<Map<K, R>> {
+        this.promise.finally(onfinally)
+        return this
+    }
 
     public readonly then: Promise<Map<K, R>>["then"]
 
