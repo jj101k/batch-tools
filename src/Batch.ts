@@ -206,10 +206,13 @@ export class Batch<T, U> {
     /**
      * Finish collecting the batch, and send it. This applies when you have no
      * automatic send conditions.
+     *
+     * @returns
      */
     finish() {
         if (this.intState < BatchState.ReadyToSend) {
             this.intState = BatchState.ReadyToSend
         }
+        return this.triggerPromise
     }
 }
