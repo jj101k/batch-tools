@@ -1,12 +1,9 @@
 /**
- * For using a map like it's a set.
+ * For having a set of objects. This uses a map to keep them unique; unlike Set,
+ * this allows you to provide a custom map like PseudoMap which understands
+ * objects as keys.
  */
-export class PseudoSet<I, K> implements Set<I> {
-    /**
-     *
-     */
-    private uniqueValues = new Map<K, I>()
-
+export class PseudoSet<I> implements Set<I> {
     get size() {
         return this.uniqueValues.size
     }
@@ -17,13 +14,13 @@ export class PseudoSet<I, K> implements Set<I> {
 
     /**
      *
-     * @param getKey
+     * @param uniqueValues
      */
-    constructor(private getKey: (item: I) => K) {
+    constructor(private uniqueValues: Map<I, I>) {
     }
 
     add(value: I): this {
-        this.uniqueValues.set(this.getKey(value), value)
+        this.uniqueValues.set(value, value)
         return this
     }
 
@@ -32,7 +29,7 @@ export class PseudoSet<I, K> implements Set<I> {
     }
 
     delete(value: I): boolean {
-        return this.uniqueValues.delete(this.getKey(value))
+        return this.uniqueValues.delete(value)
     }
 
     forEach(callbackfn: (value: I, value2: I, set: Set<I>) => void, thisArg?: any): void {
@@ -42,7 +39,7 @@ export class PseudoSet<I, K> implements Set<I> {
     }
 
     has(value: I): boolean {
-        return this.uniqueValues.has(this.getKey(value))
+        return this.uniqueValues.has(value)
     }
 
     *entries(): IterableIterator<[I, I]> {

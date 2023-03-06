@@ -1,6 +1,8 @@
 import { LoadBuffer } from "./LoadBuffer"
 
 /**
+ * @see BatchTools which does something similar
+ *
  * This applies where your load buffers have a meaningful size limit. If they
  * don't, you can just use LoadBuffer.
  *

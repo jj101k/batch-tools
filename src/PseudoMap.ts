@@ -17,7 +17,7 @@ export class PseudoMap<K extends string | number, R, I> implements Map<I, R> {
 
     /**
      *
-     * @param getKey
+     * @param getKey Map the objects to valid keys (eg, strings)
      */
     constructor(private getKey: (item: I) => K) {
     }
