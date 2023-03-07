@@ -1,4 +1,5 @@
 import { LoadSelectionBuffer } from "./LoadSelectionBuffer"
+import { PseudoMap } from "./PseudoMap"
 import { PseudoSet } from "./PseudoSet"
 
 /**
@@ -10,7 +11,7 @@ export class LoadSelectionBufferAny<K extends string | number, I> extends LoadSe
     /**
      *
      */
-    protected pendingItems: PseudoSet<I, K>
+    protected pendingItems: PseudoSet<I>
 
     /**
      *
@@ -23,6 +24,6 @@ export class LoadSelectionBufferAny<K extends string | number, I> extends LoadSe
         bufferCapacity = Infinity
     ) {
         super(delayMs, bufferCapacity)
-        this.pendingItems = new PseudoSet(getKey)
+        this.pendingItems = new PseudoSet(new PseudoMap(getKey))
     }
 }
