@@ -18,8 +18,10 @@ export class PseudoMap<K extends string | number, R, I> implements Map<I, R> {
     /**
      *
      * @param getKey Map the objects to valid keys (eg, strings)
+     * @param items
      */
-    constructor(private getKey: (item: I) => K) {
+    constructor(private getKey: (item: I) => K, items: Array<[I, R]> = []) {
+        this.uniqueValues = new Map(items.map(([i, r]) => [getKey(i), [i, r]]))
     }
 
     entries(): IterableIterator<[I, R]> {
