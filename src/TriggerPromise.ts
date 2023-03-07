@@ -1,14 +1,15 @@
 import { Cancelled } from "./Errors"
+import { ExtensiblePromise } from "./ExtensiblePromise"
 
 /**
  * This is a lightweight wrapper around a promise to give you something which
  * won't run immediately but will on request.
  */
-export class TriggerPromise<T> implements Promise<T> {
+export class TriggerPromise<T> extends ExtensiblePromise<T> {
     /**
      *
      */
-    private promise: Promise<T>
+    protected promise: Promise<T>
 
     /**
      *
@@ -22,16 +23,10 @@ export class TriggerPromise<T> implements Promise<T> {
 
     /**
      *
-     */
-    get [Symbol.toStringTag]() {
-        return "TriggerPromise"
-    }
-
-    /**
-     *
      * @param action The action to be performed on activate
      */
     constructor(action: () => Promise<T> | T) {
+        super()
         this.promise = new Promise((resolve, reject) => {
             this.reject = reject
             this.resolve = resolve
@@ -50,34 +45,5 @@ export class TriggerPromise<T> implements Promise<T> {
      */
     cancel() {
         this.reject(new Cancelled())
-    }
-
-    /**
-     *
-     * @param onrejected
-     * @returns
-     */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | null | undefined): Promise<T | TResult> {
-        return this.promise.catch(onrejected)
-    }
-
-    /**
-     *
-     * @param onfinish
-     * @returns
-     */
-    finally(onfinish: () => any) {
-        this.promise.finally(onfinish)
-        return this
-    }
-
-    /**
-     *
-     * @param onfulfilled
-     * @param onrejected
-     * @returns
-     */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | null | undefined, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined): Promise<TResult1 | TResult2> {
-        return this.promise.then(onfulfilled, onrejected)
     }
 }

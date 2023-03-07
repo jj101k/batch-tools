@@ -1,3 +1,4 @@
+import { ExtensiblePromise } from "./ExtensiblePromise"
 import { LoadSelectionBuffer } from "./LoadSelectionBuffer"
 
 /**
@@ -14,7 +15,7 @@ import { LoadSelectionBuffer } from "./LoadSelectionBuffer"
  *
  * This has a promise interface to make it easier to work with.
  */
-export class LoadBuffer<K, R> implements Promise<Map<K, R>> {
+export class LoadBuffer<K, R> extends ExtensiblePromise<Map<K, R>> {
     /**
      *
      */
@@ -34,30 +35,14 @@ export class LoadBuffer<K, R> implements Promise<Map<K, R>> {
         return this.loadSelectionBuffer.items
     }
 
-    get [Symbol.toStringTag]() {
-        return "LoadBuffer"
-    }
-
-    public readonly catch: Promise<Map<K, R>>["catch"]
-
-    finally(onfinally?: (() => void) | null | undefined): Promise<Map<K, R>> {
-        this.promise.finally(onfinally)
-        return this
-    }
-
-    public readonly then: Promise<Map<K, R>>["then"]
-
     /**
      *
      * @param then
      * @param loadSelectionBuffer
      */
     constructor(then: (items: K[]) => Promise<Map<K, R>>, protected loadSelectionBuffer = new LoadSelectionBuffer<K>()) {
-        this.promise = loadSelectionBuffer.then(then)
-
-        this.catch = this.promise.catch
-        this.finally = this.promise.finally
-        this.then = this.promise.then
+        super()
+        this.promise = loadSelectionBuffer.then(then, () => new Map())
     }
 
     /**

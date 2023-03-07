@@ -1,4 +1,5 @@
 import { InvalidState } from "./Errors"
+import { ExtensiblePromise } from "./ExtensiblePromise"
 
 /**
  * This provides a loading buffer which will hang around for `delayMs` milliseconds
@@ -9,7 +10,7 @@ import { InvalidState } from "./Errors"
  *
  * If you need to operate on non-primitive objects, use LoadSelectionBufferAny.
  */
-export class LoadSelectionBuffer<I> extends Promise<I[]> {
+export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
     /**
      *
      */
@@ -63,6 +64,8 @@ export class LoadSelectionBuffer<I> extends Promise<I[]> {
      */
     protected pendingItems = new Set<I>()
 
+    protected promise: Promise<I[]>
+
     /**
      *
      */
@@ -86,7 +89,8 @@ export class LoadSelectionBuffer<I> extends Promise<I[]> {
         delayMs: number = 50,
         private bufferCapacity = Infinity
     ) {
-        super((resolve) => {
+        super()
+        this.promise = new Promise((resolve) => {
             this.resolve = resolve
             this.timeout = setTimeout(() => this.resolveOnce(), delayMs)
         })
