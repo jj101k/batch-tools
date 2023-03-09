@@ -1,5 +1,6 @@
 import { InvalidState } from "./Errors"
 import { ExtensiblePromise } from "./LowLevel/ExtensiblePromise"
+import { TriggerPromise } from "./LowLevel/TriggerPromise"
 
 /**
  * @see Batch which does something similar
@@ -22,14 +23,6 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
      *
      */
     private debug = false
-
-    /**
-     *
-     */
-    private resolve: (value: I[]) => void = (value) => {
-        // Can't happen unless someone messes with the Promise constructor
-        throw new InvalidState("Internal error: resolved too early")
-    };
 
     /**
      *
@@ -74,7 +67,7 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
                 this.timeout = null
             }
             this.debugLog("Resolving", this.pendingItems)
-            this.resolve([...this.pendingItems.values()])
+            this.promise.activate()
         }
     }
 
@@ -83,7 +76,7 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
      */
     protected pendingItems = new Set<I>()
 
-    protected promise: Promise<I[]>
+    protected promise: TriggerPromise<I[]>
 
     /**
      *
@@ -117,10 +110,9 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
     ) {
         super()
         this.debugLog({delayMs, bufferCapacity})
-        this.promise = new Promise((resolve) => {
-            this.resolve = resolve
-            this.timeout = setTimeout(() => this.resolveOnce(), delayMs)
-        })
+
+        this.promise = new TriggerPromise(() => [...this.items])
+        this.timeout = setTimeout(() => this.resolveOnce(), delayMs)
     }
 
     /**
