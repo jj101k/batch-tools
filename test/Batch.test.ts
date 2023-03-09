@@ -1,5 +1,5 @@
 import * as assert from "assert"
-import { Batch } from "../src/Batch"
+import { Batch } from "../src/LowLevel/Batch"
 import { TestHelper } from "./TestHelper"
 
 describe("Batch is usable", () => {
