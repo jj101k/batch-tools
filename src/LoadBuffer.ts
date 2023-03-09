@@ -64,7 +64,9 @@ export class LoadBuffer<K, R> extends ExtensiblePromise<Map<K, R>> {
      * removed, rejected.
      */
     async include(item: K) {
+        if(!this.loadSelectionBuffer.has(item)) {
         this.loadSelectionBuffer.add(item)
+        }
         const v = await this.promise
         if(this.loadSelectionBuffer.has(item)) {
             return v.get(item)!
