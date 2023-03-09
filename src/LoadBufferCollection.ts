@@ -1,58 +1,60 @@
-import { LoadBuffer } from "./LoadBuffer"
 import { LoadSelectionBuffer } from "./LoadSelectionBuffer"
 
 /**
- * @see BatchTools which does something similar
  *
- * This applies where your load buffers have a meaningful size limit. If they
- * don't, you can just use LoadBuffer.
+ */
+interface LoadResultBuffer<K, R> {
+    /**
+     *
+     */
+    buffer: LoadSelectionBuffer<K>
+    /**
+     *
+     */
+    promise: Promise<Map<K, R>>
+}
+
+/**
+ * @see BatchTools which does something similar
  *
  * This wraps multiple load buffers so that they can be sent serially or with
  * limited parallelism.
  *
  * This can safely be filled, allowed to drain, then refilled. For that reason
  * it doesn't have a promise interface.
- *
- * This class operates on primitives, eg. IDs, there is a class
- * LoadBufferCollectionAny if you want to operate on raw objects.
  */
 export class LoadBufferCollection<K, R> {
     /**
      *
      */
-    private buffers: LoadBuffer<K, R>[] = []
+    private loadResultBuffers: LoadResultBuffer<K, R>[] = []
 
     /**
      *
      */
-    protected get currentLoadBuffer() {
+    protected get currentLoadResultBuffer() {
         // FIXME race: it may have resolved
-        const lastLoadBuffer = this.buffers[this.buffers.length - 1]
-        if(!lastLoadBuffer || lastLoadBuffer.isFull) {
-            const buffer = this.createLoadBuffer()
+        const lastLoadResultBuffer = this.loadResultBuffers[this.loadResultBuffers.length - 1]
+        if(!lastLoadResultBuffer || lastLoadResultBuffer.buffer.isFull) {
+            const buffer = this.buildLoadSelectionBuffer()
+            const promise = buffer.then(this.handler)
             buffer.then(() => {
                 for(const item of buffer.items) {
                     this.items.delete(item)
                 }
             })
-            this.buffers.push(buffer)
-            return buffer
+            const loadResultBuffer = {buffer, promise}
+            this.loadResultBuffers.push(loadResultBuffer)
+            return loadResultBuffer
         } else {
-            return lastLoadBuffer
+            return lastLoadResultBuffer
         }
     }
 
     /**
      *
      */
-    protected createLoadBuffer(): LoadBuffer<K, R> {
-        return new LoadBuffer(this.handler, this.buildLoadSelectionBuffer())
-    }
-
-    /**
-     *
-     */
-    protected items = new Map<K, LoadBuffer<K, R>>()
+    protected items = new Map<K, LoadResultBuffer<K, R>>()
 
     /**
      *
@@ -69,11 +71,11 @@ export class LoadBufferCollection<K, R> {
      * @returns true if the action did anything.
      */
     abort() {
-        if(this.buffers.length) {
-            for(const buffer of this.buffers) {
-                buffer.abort()
+        if(this.loadResultBuffers.length) {
+            for(const resultBuffer of this.loadResultBuffers) {
+                resultBuffer.buffer.abort()
             }
-            this.buffers = []
+            this.loadResultBuffers = []
             this.items.clear()
             return true
         } else {
@@ -88,13 +90,19 @@ export class LoadBufferCollection<K, R> {
      * @returns A promise resolving with the item's resultant value or, if
      * removed, undefined.
      */
-    include(item: K): Promise<R> {
-        let bufferReference = this.items.get(item)
-        if(!bufferReference) {
-            bufferReference = this.currentLoadBuffer
-            this.items.set(item, bufferReference)
+    async include(item: K): Promise<R> {
+        let loadResultBuffer = this.items.get(item)
+        if(!loadResultBuffer) {
+            loadResultBuffer = this.currentLoadResultBuffer
+            this.items.set(item, loadResultBuffer)
         }
-        return bufferReference.include(item)
+        loadResultBuffer.buffer.add(item)
+        const m = await loadResultBuffer.promise
+        if(loadResultBuffer.buffer.has(item)) {
+            return m.get(item)!
+        } else {
+            throw new Error("Not loaded")
+        }
     }
 
     /**
@@ -110,7 +118,7 @@ export class LoadBufferCollection<K, R> {
         const bufferReference = this.items.get(item)
         if(bufferReference) {
             this.items.delete(item)
-            return bufferReference.remove(item)
+            return bufferReference.buffer.delete(item)
         } else {
             return false
         }

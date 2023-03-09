@@ -2,11 +2,13 @@ import { InvalidState } from "./Errors"
 import { ExtensiblePromise } from "./ExtensiblePromise"
 
 /**
+ * @see Batch which does something similar
+ *
  * This provides a loading buffer which will hang around for `delayMs` milliseconds
  * before resolving with the accumulated array of values.
  *
  * This class only handles assembling the set of items to work on. To do the
- * work (and get the results), you'll want LoadBuffer.
+ * work (and get the results), you'll want to chain a .then() or await it.
  *
  * If you need to operate on non-primitive objects, use LoadSelectionBufferAny.
  */
@@ -70,7 +72,7 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
      *
      */
     get isFull() {
-        return this.pendingItems.size >= this.bufferCapacity
+        return this.size >= this.bufferCapacity
     }
 
     /**
@@ -78,6 +80,13 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
      */
     get items() {
         return this.pendingItems.values()
+    }
+
+    /**
+     *
+     */
+    get size() {
+        return this.pendingItems.size
     }
 
     /**
