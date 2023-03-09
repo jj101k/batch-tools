@@ -15,7 +15,7 @@ import { LoadBuffer } from "./LoadBuffer"
  * This class operates on primitives, eg. IDs, there is a class
  * LoadBufferCollectionAny if you want to operate on raw objects.
  */
-export abstract class LoadBufferCollection<K, R> {
+export class LoadBufferCollection<K, R> {
     /**
      *
      */
