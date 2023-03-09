@@ -13,7 +13,7 @@ export class LoadBufferCollectionAny<K extends string | number, R, I> extends Lo
     protected items = new PseudoMap<K, LoadBuffer<I, R>, I>(this.getKey);
 
     protected createLoadBuffer(): LoadBuffer<I, R> {
-        return new LoadBuffer(this.then, new LoadSelectionBufferAny(this.getKey))
+        return new LoadBuffer(this.handler, new LoadSelectionBufferAny(this.getKey))
     }
 
     /**

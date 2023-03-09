@@ -45,7 +45,7 @@ export abstract class LoadBufferCollection<K, R> {
      *
      */
     protected createLoadBuffer(): LoadBuffer<K, R> {
-        return new LoadBuffer(this.then)
+        return new LoadBuffer(this.handler)
     }
 
     /**
@@ -55,9 +55,9 @@ export abstract class LoadBufferCollection<K, R> {
 
     /**
      *
-     * @param then
+     * @param handler
      */
-    constructor(protected then: (items: K[]) => Promise<Map<K, R>>) {
+    constructor(protected handler: (items: K[]) => Promise<Map<K, R>>) {
     }
 
     /**
