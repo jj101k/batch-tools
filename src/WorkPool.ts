@@ -1,5 +1,5 @@
 import { InvalidState } from "./Errors"
-import { TriggerPromise } from "./TriggerPromise"
+import { TriggerPromise } from "./LowLevel/TriggerPromise"
 
 /**
  *

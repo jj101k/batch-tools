@@ -1,6 +1,6 @@
-import { Batch } from "./Batch"
-import { BatchSendCondition } from "./BatchSendCondition"
-import { BatchState } from "./BatchState"
+import { Batch } from "./LowLevel/Batch"
+import { BatchSendCondition } from "./LowLevel/BatchSendCondition"
+import { BatchState } from "./LowLevel/BatchState"
 import { LimitExceeded } from "./Errors"
 
 /**

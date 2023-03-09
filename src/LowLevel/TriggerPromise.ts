@@ -1,4 +1,4 @@
-import { Cancelled } from "./Errors"
+import { Cancelled } from "../Errors"
 import { ExtensiblePromise } from "./ExtensiblePromise"
 
 /**

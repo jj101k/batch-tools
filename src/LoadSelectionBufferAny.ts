@@ -1,6 +1,6 @@
 import { LoadSelectionBuffer } from "./LoadSelectionBuffer"
 import { PseudoMap } from "./PseudoMap"
-import { PseudoSet } from "./PseudoSet"
+import { PseudoSet } from "./LowLevel/PseudoSet"
 
 /**
  * @see LoadSelectionBuffer

@@ -1,5 +1,5 @@
 import { InvalidState } from "./Errors"
-import { ExtensiblePromise } from "./ExtensiblePromise"
+import { ExtensiblePromise } from "./LowLevel/ExtensiblePromise"
 
 /**
  * @see Batch which does something similar

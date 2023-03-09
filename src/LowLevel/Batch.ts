@@ -1,6 +1,6 @@
 import { BatchState } from "./BatchState"
 import { BatchSendCondition } from "./BatchSendCondition"
-import { InvalidState } from "./Errors"
+import { InvalidState } from "../Errors"
 import { TriggerPromise } from "./TriggerPromise"
 
 /**
