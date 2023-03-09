@@ -85,7 +85,7 @@ export class LoadBufferCollection<K, R> {
      * @returns A promise resolving with the item's resultant value or, if
      * removed, undefined.
      */
-    include(item: K): Promise<R | undefined> {
+    include(item: K): Promise<R> {
         let bufferReference = this.items.get(item)
         if(!bufferReference) {
             bufferReference = this.currentLoadBuffer
