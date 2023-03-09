@@ -142,4 +142,13 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
         this.assertIsWritable()
         return this.pendingItems.delete(item)
     }
+
+    /**
+     *
+     * @param item
+     * @returns
+     */
+    has(item: I) {
+        return this.pendingItems.has(item)
+    }
 }

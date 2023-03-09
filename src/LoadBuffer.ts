@@ -59,12 +59,18 @@ export class LoadBuffer<K, R> extends ExtensiblePromise<Map<K, R>> {
      * Adds an item to the batch.
      *
      * @param item
+     * @throws
      * @returns A promise resolving with the item's resultant value or, if
-     * removed, undefined.
+     * removed, rejected.
      */
-    include(item: K) {
+    async include(item: K) {
         this.loadSelectionBuffer.add(item)
-        return this.promise.then(v => v.get(item))
+        const v = await this.promise
+        if(this.loadSelectionBuffer.has(item)) {
+            return v.get(item)!
+        } else {
+            throw new Error("Not loaded")
+        }
     }
 
     /**
