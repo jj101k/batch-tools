@@ -1,4 +1,5 @@
 import { LoadBuffer } from "./LoadBuffer"
+import { LoadSelectionBuffer } from "./LoadSelectionBuffer"
 
 /**
  * @see BatchTools which does something similar
@@ -45,7 +46,7 @@ export class LoadBufferCollection<K, R> {
      *
      */
     protected createLoadBuffer(): LoadBuffer<K, R> {
-        return new LoadBuffer(this.handler)
+        return new LoadBuffer(this.handler, this.buildLoadSelectionBuffer())
     }
 
     /**
@@ -56,8 +57,10 @@ export class LoadBufferCollection<K, R> {
     /**
      *
      * @param handler
+     * @param buildLoadSelectionBuffer
      */
-    constructor(protected handler: (items: K[]) => Promise<Map<K, R>>) {
+    constructor(protected handler: (items: K[]) => Promise<Map<K, R>>,
+        private buildLoadSelectionBuffer: () => LoadSelectionBuffer<any> = () => new LoadSelectionBuffer()) {
     }
 
     /**
