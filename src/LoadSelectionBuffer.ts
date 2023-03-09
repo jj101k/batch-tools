@@ -21,6 +21,11 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
     /**
      *
      */
+    private debug = false
+
+    /**
+     *
+     */
     private resolve: (value: I[]) => void = (value) => {
         // Can't happen unless someone messes with the Promise constructor
         throw new InvalidState("Internal error: resolved too early")
@@ -49,6 +54,17 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
 
     /**
      *
+     * @param message
+     * @param otherContent
+     */
+    private debugLog(message: any, ...otherContent: any[]) {
+        if (this.debug) {
+            console.log(message, ...otherContent)
+        }
+    }
+
+    /**
+     *
      */
     private resolveOnce() {
         if (!this.resolved) {
@@ -57,6 +73,7 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
                 clearTimeout(this.timeout)
                 this.timeout = null
             }
+            this.debugLog("Resolving", this.pendingItems)
             this.resolve([...this.pendingItems.values()])
         }
     }
@@ -99,6 +116,7 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
         private bufferCapacity = Infinity
     ) {
         super()
+        this.debugLog({delayMs, bufferCapacity})
         this.promise = new Promise((resolve) => {
             this.resolve = resolve
             this.timeout = setTimeout(() => this.resolveOnce(), delayMs)
