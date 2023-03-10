@@ -164,6 +164,14 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
 
     /**
      *
+     * @returns
+     */
+    finish() {
+        return this.promise.activate()
+    }
+
+    /**
+     *
      * @param item
      * @returns
      */
