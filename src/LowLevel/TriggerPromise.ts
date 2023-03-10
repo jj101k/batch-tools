@@ -22,6 +22,14 @@ export class TriggerPromise<T> extends ExtensiblePromise<T> {
     private resolve!: (value: any) => void
 
     /**
+     * Returns the promise, so that you can avoid exposing the trigger if
+     * needed.
+     */
+    get promiseOnly() {
+        return this.promise
+    }
+
+    /**
      *
      * @param action The action to be performed on activate
      */
