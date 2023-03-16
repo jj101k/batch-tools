@@ -1,7 +1,7 @@
-import { BatchState } from "./BatchState"
+import { Cancelled, InvalidState } from "../Errors"
+import { LoadSelectionBuffer } from "../LoadSelectionBuffer"
 import { BatchSendCondition } from "./BatchSendCondition"
-import { InvalidState } from "../Errors"
-import { TriggerPromise } from "./TriggerPromise"
+import { BatchState } from "./BatchState"
 
 /**
  * Some work handled by a promise, some not.
@@ -28,12 +28,6 @@ interface PartialPromise<P> {
  */
 export class Batch<T, U> {
     /**
-     * The objects to operate on. This will generally increase then become
-     * static.
-     */
-    private backlog: T[] = []
-
-    /**
      *
      */
     private debug = false
@@ -44,11 +38,6 @@ export class Batch<T, U> {
     private id: number | null = null
 
     /**
-     * Whether to delay sending the batch once it meets its criteria.
-     */
-    private _delay: boolean
-
-    /**
      *
      */
     private _intState: BatchState = BatchState.Initial
@@ -56,7 +45,12 @@ export class Batch<T, U> {
     /**
      *
      */
-    private triggerPromise: TriggerPromise<U[]>
+    private resultsPromise: Promise<U[]>
+
+    /**
+     *
+     */
+    private selectionBuffer: LoadSelectionBuffer<T>
 
     /**
      * The internal state. Unlike the external view of the same, this is
@@ -76,15 +70,6 @@ export class Batch<T, U> {
             throw new InvalidState("State may only move forwards")
         }
         this._intState = v
-
-        if (v == BatchState.ReadyToSend && !this.delay) {
-            this._intState = BatchState.Sent
-        }
-
-        if (this._intState == BatchState.Sent) {
-            this.debugLog("Resolve")
-            this.triggerPromise.activate()
-        }
     }
 
     /**
@@ -105,7 +90,7 @@ export class Batch<T, U> {
      * True if add() will do anything, ie if this batch is unsent and still has capacity.
      */
     get canAdd() {
-        return this.intState < BatchState.Sent && (this.sendCondition.limit ?? Infinity) > this.backlog.length
+        return this.intState < BatchState.Sent && !this.selectionBuffer.isFull
     }
 
     /**
@@ -114,14 +99,14 @@ export class Batch<T, U> {
      * true after the batch is sent has no effect.
      */
     get delay() {
-        return this._delay
+        return this.selectionBuffer.defer
     }
 
     /**
      *
      */
     set delay(v) {
-        this._delay = v
+        this.selectionBuffer.defer = v
         if (this.intState == BatchState.ReadyToSend && !v) {
             this.intState = BatchState.Sent
         }
@@ -131,13 +116,16 @@ export class Batch<T, U> {
      * How much work is in the batch
      */
     get size() {
-        return this.backlog.length
+        return this.selectionBuffer.size
     }
 
     /**
      *
      */
     get state() {
+        if(this.intState < BatchState.ReadyToSend && this.selectionBuffer.ready) {
+            return BatchState.ReadyToSend
+        }
         return this.intState
     }
 
@@ -152,13 +140,34 @@ export class Batch<T, U> {
      * needed.
      */
     constructor(func: (...ts: T[]) => Promise<U[]>,
-        private sendCondition: BatchSendCondition = {}, delay = false
+        sendCondition: BatchSendCondition = {}, delay = false
     ) {
-        this._delay = delay
-        this.triggerPromise = new TriggerPromise(() => func(...this.backlog)).finally(() => {
+        this.selectionBuffer = new LoadSelectionBuffer<T>(sendCondition.timeoutMs ?? null, sendCondition.limit, delay)
+        this.resultsPromise = this.selectionBuffer.then(
+            async backlog => {
+                this._intState = BatchState.Sent
+                this.debugLog("Selection resolved with buffer", backlog)
+                const results = await func(...backlog)
+                if(this.intState == BatchState.Aborted) {
+                    throw new Error("Aborted")
+                }
+                return results
+            }
+        ).finally(() => {
             this.debugLog("Post-resolve")
             this.intState = BatchState.Finished
         })
+    }
+
+    /**
+     * Stops the process.
+     */
+    abort() {
+        if(this.intState < BatchState.Finished) {
+            this.debugLog("Aborting buffer")
+            this._intState = BatchState.Aborted
+            this.selectionBuffer.abort()
+        }
     }
 
     /**
@@ -177,34 +186,18 @@ export class Batch<T, U> {
                 remaining: items.length,
             }
         }
-        if (this.intState == BatchState.Initial && this.sendCondition.timeoutMs !== undefined) {
-            setTimeout(() => {
-                this.debugLog("Time out")
-                this.finish()
-            }, this.sendCondition.timeoutMs)
-        }
+
         this.intState = BatchState.Waiting
 
-        const offset = this.backlog.length
-        const promise = this.triggerPromise.then(results => results.slice(offset, offset + items.length))
-
-        let remainingLength: number
-        if (this.sendCondition.limit) {
-            const space = this.sendCondition.limit - this.backlog.length
-            this.debugLog(`${items.length} compare ${space}`)
-            if (items.length < space) {
-                remainingLength = 0
-                this.backlog.push(...items)
-            } else {
-                remainingLength = items.length - space
-                this.debugLog("Over")
-                this.backlog.push(...items.slice(0, space))
-                this.finish()
+        const offset = this.selectionBuffer.size
+        const promise = this.resultsPromise.then(results => {
+            if(this.intState == BatchState.Aborted) {
+                throw new Cancelled()
             }
-        } else {
-            remainingLength = 0
-            this.backlog.push(...items)
-        }
+            return results.slice(offset, offset + items.length)
+        })
+
+        const remainingLength = this.selectionBuffer.add(...items)
         this.debugLog(`Loaded with ${remainingLength} remaining`)
         return {
             promise,
@@ -219,9 +212,6 @@ export class Batch<T, U> {
      * @returns
      */
     finish() {
-        if (this.intState < BatchState.ReadyToSend) {
-            this.intState = BatchState.ReadyToSend
-        }
-        return this.triggerPromise
+        return this.selectionBuffer.finish()
     }
 }

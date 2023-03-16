@@ -12,4 +12,6 @@ export enum BatchState {
     Sent,
     // The batch results have come back.
     Finished,
+    // The action was aborted in an earlier state
+    Aborted,
 }
