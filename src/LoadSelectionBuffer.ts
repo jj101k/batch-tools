@@ -32,6 +32,11 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
     /**
      *
      */
+    private _ready = false
+
+    /**
+     *
+     */
     private resolved = false
 
     /**
@@ -47,6 +52,17 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
             throw new InvalidState(`Selection can no longer be modified after being aborted`)
         } else if (this.resolved) {
             throw new InvalidState(`Selection can no longer be modified after being resolved`)
+        }
+    }
+
+    /**
+     *
+     */
+    private conditionallyResolve() {
+        this._ready = true
+        if(!this.defer) {
+            this.debugLog("Resolve")
+            this.resolveOnce()
         }
     }
 
@@ -89,6 +105,22 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
     /**
      *
      */
+    get defer() {
+        return this._defer
+    }
+
+    set defer(v) {
+        const o = this._defer
+        this._defer = v
+        if(o && !v && this.ready) {
+            this.debugLog("Resolve - defer flag cleared")
+            this.resolveOnce()
+        }
+    }
+
+    /**
+     *
+     */
     get isFull() {
         return this.size >= this.bufferCapacity
     }
@@ -103,6 +135,13 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
     /**
      *
      */
+    get ready() {
+        return this._ready
+    }
+
+    /**
+     *
+     */
     get size() {
         return this.pendingItems.size
     }
@@ -111,13 +150,15 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
      *
      * @param delayMs
      * @param bufferCapacity
+     * @param defer
      */
     constructor(
         private delayMs: number | null = 50,
         private bufferCapacity = Infinity,
+        private _defer = false
     ) {
         super()
-        this.debugLog({delayMs, bufferCapacity})
+        this.debugLog({delayMs, bufferCapacity, _defer})
 
         this.promise = new TriggerPromise(() => [...this.items])
     }
@@ -156,14 +197,14 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
         if(!this.timeout && this.delayMs !== null) {
             this.timeout = setTimeout(() => {
                 this.debugLog("Resolve on timeout")
-                this.resolveOnce()
+                this.conditionallyResolve()
             }, this.delayMs)
         }
         this.pendingItems.add(item)
         this.debugLog("Added", item, this.pendingItems.size)
         if (this.pendingItems.size >= this.bufferCapacity) {
             this.debugLog("Resolve on buffer fill")
-            this.resolveOnce()
+            this.conditionallyResolve()
         }
         return this
     }
@@ -185,7 +226,7 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
      */
     finish() {
         this.debugLog("Resolve on finish")
-        this.resolveOnce()
+        this.conditionallyResolve()
     }
 
     /**
