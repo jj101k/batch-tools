@@ -23,6 +23,16 @@ export class BatchToolsSingle<T, U> {
     private batches: Batch<T, U>[] = []
 
     /**
+     *
+     */
+    private debug = false
+
+    /**
+     *
+     */
+    private id: number | null = null
+
+    /**
      * The batch which is currently (or most recently) accepting entries. By the
      * time of any given call, this might no longer be accepting entries, so
      * this will get checked often.
@@ -36,6 +46,7 @@ export class BatchToolsSingle<T, U> {
     private get activeBatch() {
         if(!this.lastActiveBatch?.canAdd) {
             if(this.lastActiveBatch) {
+                this.debugLog("Pushing non-add active batch")
                 this.batches.push(this.lastActiveBatch)
             }
             this.lastActiveBatch = new Batch(
@@ -45,6 +56,20 @@ export class BatchToolsSingle<T, U> {
             )
         }
         return this.lastActiveBatch
+    }
+
+    /**
+     *
+     * @param message
+     * @param otherContent
+     */
+    private debugLog(message: any, ...otherContent: any[]) {
+        if (this.debug) {
+            if(this.id === null) {
+                this.id = Math.floor(Math.random() * 1000)
+            }
+            console.log(this.id, message, ...otherContent)
+        }
     }
 
     /**
@@ -143,8 +168,11 @@ export class BatchToolsSingle<T, U> {
      */
     send() {
         if(this.lastActiveBatch) {
+            this.debugLog("Send - finish")
             this.lastActiveBatch.finish()
             this.batches.push(this.lastActiveBatch)
+        } else {
+            this.debugLog("Send - nothing to send")
         }
         this.lastActiveBatch = new Batch(this.func, this.sendCondition)
     }
