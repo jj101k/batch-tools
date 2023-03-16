@@ -122,6 +122,7 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
      */
     abort() {
         if(this.resolved && !this.aborted) {
+            this.debugLog("Abort")
             this.aborted = true
             if(this.timeout) {
                 clearTimeout(this.timeout)
@@ -130,6 +131,7 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
             this.pendingItems.clear()
             return true
         } else {
+            this.debugLog("No abort, already resolved or aborted")
             return false
         }
     }
@@ -144,10 +146,15 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
     add(item: I) {
         this.assertIsWritable()
         if(!this.timeout && this.delayMs !== null) {
-            this.timeout = setTimeout(() => this.resolveOnce(), this.delayMs)
+            this.timeout = setTimeout(() => {
+                this.debugLog("Resolve")
+                this.resolveOnce()
+            }, this.delayMs)
         }
         this.pendingItems.add(item)
+        this.debugLog("Added", item, this.pendingItems.size)
         if (this.pendingItems.size >= this.bufferCapacity) {
+            this.debugLog("Resolve")
             this.resolveOnce()
         }
         return this
@@ -169,6 +176,7 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
      * @returns
      */
     finish() {
+        this.debugLog("Finish")
         return this.promise.activate()
     }
 
