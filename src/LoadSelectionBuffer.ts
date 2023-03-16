@@ -27,6 +27,11 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
     /**
      *
      */
+    private id: number | null = null
+
+    /**
+     *
+     */
     private resolved = false
 
     /**
@@ -52,7 +57,10 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
      */
     private debugLog(message: any, ...otherContent: any[]) {
         if (this.debug) {
-            console.log(message, ...otherContent)
+            if(this.id === null) {
+                this.id = Math.floor(Math.random() * 1000)
+            }
+            console.log(this.id, message, ...otherContent)
         }
     }
 
