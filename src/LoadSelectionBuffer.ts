@@ -105,7 +105,7 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
      * @param bufferCapacity
      */
     constructor(
-        private delayMs: number = 50,
+        private delayMs: number | null = 50,
         private bufferCapacity = Infinity,
     ) {
         super()
@@ -143,7 +143,7 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
      */
     add(item: I) {
         this.assertIsWritable()
-        if(!this.timeout) {
+        if(!this.timeout && this.delayMs !== null) {
             this.timeout = setTimeout(() => this.resolveOnce(), this.delayMs)
         }
         this.pendingItems.add(item)
