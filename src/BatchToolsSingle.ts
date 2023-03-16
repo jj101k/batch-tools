@@ -151,6 +151,19 @@ export class BatchToolsSingle<T, U> {
     }
 
     /**
+     *
+     */
+    abort() {
+        this.debugLog("Abort, stopping all batches")
+        for(const batch of this.batches) {
+            batch.abort()
+        }
+        this.batches = []
+        this.lastActiveBatch?.abort()
+        this.lastActiveBatch = null
+    }
+
+    /**
      * Handle one item. This will put it in a batch behind the scenes, and in
      * effect is the same as calling func(item) but with different timing.
      *
