@@ -105,14 +105,13 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
      * @param bufferCapacity
      */
     constructor(
-        delayMs: number = 50,
-        private bufferCapacity = Infinity
+        private delayMs: number = 50,
+        private bufferCapacity = Infinity,
     ) {
         super()
         this.debugLog({delayMs, bufferCapacity})
 
         this.promise = new TriggerPromise(() => [...this.items])
-        this.timeout = setTimeout(() => this.resolveOnce(), delayMs)
     }
 
     /**
@@ -144,6 +143,9 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
      */
     add(item: I) {
         this.assertIsWritable()
+        if(!this.timeout) {
+            this.timeout = setTimeout(() => this.resolveOnce(), this.delayMs)
+        }
         this.pendingItems.add(item)
         if (this.pendingItems.size >= this.bufferCapacity) {
             this.resolveOnce()
