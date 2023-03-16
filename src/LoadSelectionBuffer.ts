@@ -204,11 +204,13 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
                 this.conditionallyResolve()
             }, this.delayMs)
         }
-        this.pendingItems.add(item)
-        this.debugLog("Added", item, this.pendingItems.size)
-        if (this.pendingItems.size >= this.bufferCapacity) {
-            this.debugLog("Resolve on buffer fill")
-            this.conditionallyResolve()
+        if (!this.isFull) {
+            this.pendingItems.add(item)
+            this.debugLog("Added", item, this.pendingItems.size)
+            if (this.pendingItems.size >= this.bufferCapacity) {
+                this.debugLog("Resolve on buffer fill")
+                this.conditionallyResolve()
+            }
         }
         return this
     }
