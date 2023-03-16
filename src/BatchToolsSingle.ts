@@ -81,7 +81,7 @@ export class BatchToolsSingle<T, U> {
      */
     private enableBatches() {
         // Clean out any no-longer-interesting batches.
-        this.batches = this.batches.filter(batch => batch.state < BatchState.Sent)
+        this.batches = this.batches.filter(batch => batch.state < BatchState.Finished)
 
         if(this.batches.length <= this.parallelLimit) {
             for(const batch of this.batches) {
