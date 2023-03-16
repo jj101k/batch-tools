@@ -151,28 +151,32 @@ describe("Batch tools are usable", () => {
     it("can run with a timeout + limit + parallel limit", async function() {
         this.slow(500)
         const consumer = new BatchToolsConsumer()
-        const testWrapper = new BatchToolTestWrapper(consumer.fooBatchedLimitParallelLimit)
+        try {
+            const testWrapper = new BatchToolTestWrapper(consumer.fooBatchedLimitParallelLimit)
 
-        const items = "abcdefg".split("")
+            const items = "abcdefg".split("")
 
-        // More than 10!
-        testWrapper.tryMultiCall(...items.slice(0, 3)) // 0 1 2
-        testWrapper.tryMultiCall(...items.slice(3, 7)) // 3 4 5 6
-        await TestHelper.pause(5)
-        // t+5: At this point we have three complete batches (a, b), (c, d), (e,
-        // f) and one incomplete batch (g). Only the first two batches will have
-        // been sent
-        assert.equal(consumer.callCount, 2, "Expected number of calls made")
-        await TestHelper.pause(55)
-        // t+60: The fourth batch became available, but was not sent.
-        assert.equal(consumer.callCount, 2, "Expected number of calls made (no change)")
-        await TestHelper.pause(50)
-        // t+110: Results from the first two batches, last two batches are sent.
-        assert.equal(consumer.callCount, 4, "All calls made")
-        assert.equal(testWrapper.results.size, 3, "Partial results in - one response for two batches")
-        await TestHelper.pause(100)
-        // t+210: All results in
+            // More than 10!
+            testWrapper.tryMultiCall(...items.slice(0, 3)) // 0 1 2
+            testWrapper.tryMultiCall(...items.slice(3, 7)) // 3 4 5 6
+            await TestHelper.pause(5)
+            // t+5: At this point we have three complete batches (a, b), (c, d), (e,
+            // f) and one incomplete batch (g). Only the first two batches will have
+            // been sent, because that's the limit.
+            assert.equal(consumer.callCount, 2, "Expected number of calls made")
+            await TestHelper.pause(55)
+            // t+60: The fourth batch became available, but was not sent.
+            assert.equal(consumer.callCount, 2, "Expected number of calls made (no change)")
+            await TestHelper.pause(50)
+            // t+110: Results from the first two batches, last two batches are sent.
+            assert.equal(consumer.callCount, 4, "All calls made")
+            assert.equal(testWrapper.results.size, 3, "Partial results in - one response for two batches")
+            await TestHelper.pause(100)
+            // t+210: All results in
 
-        assert.deepEqual(TestHelper.comparableResults(testWrapper.results), TestHelper.expectedResults("abcdefg"), "Results match")
+            assert.deepEqual(TestHelper.comparableResults(testWrapper.results), TestHelper.expectedResults("abcdefg"), "Results match")
+        } finally {
+            consumer.fooBatchedLimitParallelLimit.abort()
+        }
     })
 })
