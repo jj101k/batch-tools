@@ -24,6 +24,7 @@ describe("Batch is usable", () => {
         if(debug) {
             console.log("Finish complete")
         }
+        await TestHelper.pause(0)
         assert.equal(resultsOut.size, 20, "All results in")
     })
     describe("With a time limit", () => {
