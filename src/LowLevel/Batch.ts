@@ -39,6 +39,11 @@ export class Batch<T, U> {
     private debug = false
 
     /**
+     *
+     */
+    private id: number | null = null
+
+    /**
      * Whether to delay sending the batch once it meets its criteria.
      */
     private _delay: boolean
@@ -85,10 +90,14 @@ export class Batch<T, U> {
     /**
      *
      * @param message
+     * @param otherContent
      */
-    private debugLog(message: string) {
+    private debugLog(message: any, ...otherContent: any[]) {
         if (this.debug) {
-            console.log(message)
+            if(this.id === null) {
+                this.id = Math.floor(Math.random() * 1000)
+            }
+            console.log(this.id, message, ...otherContent)
         }
     }
 
