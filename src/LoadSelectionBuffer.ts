@@ -185,7 +185,7 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
      */
     finish() {
         this.debugLog("Resolve on finish")
-        return this.promise.activate()
+        this.resolveOnce()
     }
 
     /**
