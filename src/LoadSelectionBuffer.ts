@@ -190,13 +190,13 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
     }
 
     /**
-     * Adds an item to the batch.
+     * Adds items to the batch.
      *
-     * @param item
+     * @param items
      * @throws
-     * @returns
+     * @returns The number of items which could not be loaded
      */
-    add(item: I) {
+    add(...items: I[]) {
         this.assertIsWritable()
         if(!this.timeout && this.delayMs !== null) {
             this.timeout = setTimeout(() => {
@@ -204,15 +204,16 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
                 this.conditionallyResolve()
             }, this.delayMs)
         }
-        if (!this.isFull) {
+        const loadableItems = items.slice(0, this.bufferCapacity - this.pendingItems.size)
+        for(const item of loadableItems) {
             this.pendingItems.add(item)
             this.debugLog("Added", item, this.pendingItems.size)
-            if (this.pendingItems.size >= this.bufferCapacity) {
-                this.debugLog("Resolve on buffer fill")
-                this.conditionallyResolve()
-            }
         }
-        return this
+        if (this.pendingItems.size >= this.bufferCapacity) {
+            this.debugLog("Resolve on buffer fill")
+            this.conditionallyResolve()
+        }
+        return items.length - loadableItems.length
     }
 
     /**
