@@ -83,6 +83,10 @@ export class BatchToolsSingle<T, U> {
         // Clean out any no-longer-interesting batches.
         this.batches = this.batches.filter(batch => batch.state < BatchState.Finished)
 
+        if(this.batches.length > 0) {
+            this.debugLog(`Considering enable at ${this.batches.length} of ${this.parallelLimit}`)
+        }
+
         if(this.batches.length <= this.parallelLimit) {
             for(const batch of this.batches) {
                 batch.delay = false
