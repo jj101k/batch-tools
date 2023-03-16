@@ -25,6 +25,10 @@ interface PartialPromise<P> {
  * Generally this would be part of code to reduce O(n) HTTP requests to O(1)
  * using a batch-handling endpoint at the other end, or at least to reduce that
  * number somewhat. You aren't likely to want to use this directly.
+ *
+ * For promise-style usage, this will be resolved when the results come back,
+ * but it's not guaranteed that this will be before all the results are handled
+ * by the caller.
  */
 export class Batch<T, U> {
     /**
@@ -209,9 +213,10 @@ export class Batch<T, U> {
      * Finish collecting the batch, and send it. This applies when you have no
      * automatic send conditions.
      *
-     * @returns
+     * @returns A promise which will be resolved when the results are in.
      */
     finish() {
-        return this.selectionBuffer.finish()
+        this.selectionBuffer.finish()
+        return this.resultsPromise
     }
 }
