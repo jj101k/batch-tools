@@ -129,7 +129,7 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
      * @returns true if the action did anything.
      */
     abort() {
-        if(this.resolved && !this.aborted) {
+        if(!this.resolved && !this.aborted) {
             this.debugLog("Abort")
             this.aborted = true
             if(this.timeout) {
