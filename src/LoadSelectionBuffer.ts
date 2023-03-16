@@ -12,6 +12,10 @@ import { TriggerPromise } from "./LowLevel/TriggerPromise"
  * work (and get the results), you'll want to chain a .then() or await it.
  *
  * If you need to operate on non-primitive objects, use LoadSelectionBufferAny.
+ *
+ * As a promise, this is triggered when selection is complete; this has no
+ * bearing on when actions which were in turn triggered by the selection were
+ * completed.
  */
 export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
     /**
