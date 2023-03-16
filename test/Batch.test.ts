@@ -2,6 +2,8 @@ import * as assert from "assert"
 import { Batch } from "../src/LowLevel/Batch"
 import { TestHelper } from "./TestHelper"
 
+const debug = false
+
 describe("Batch is usable", () => {
     it("runs normally with no send condition and no delay flag", async () => {
         const batch = new Batch<number, number>((...ts) => Promise.resolve(ts))
@@ -9,11 +11,19 @@ describe("Batch is usable", () => {
         for(let i = 0; i < 20; i++) {
             const result = batch.add(i)
             assert.equal(result.remaining, 0, `Item ${i} is accepted`)
-            result.promise.then(r => resultsOut.add(r[0]))
+            result.promise.then(r => {
+                if(debug) {
+                    console.log("Adding result")
+                }
+                resultsOut.add(r[0])
+            })
         }
         await TestHelper.pause(100)
         assert.equal(resultsOut.size, 0, "No results yet")
         await batch.finish()
+        if(debug) {
+            console.log("Finish complete")
+        }
         assert.equal(resultsOut.size, 20, "All results in")
     })
     describe("With a time limit", () => {
