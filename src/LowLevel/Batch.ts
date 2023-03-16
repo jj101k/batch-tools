@@ -2,6 +2,7 @@ import { Cancelled, InvalidState } from "../Errors"
 import { LoadSelectionBuffer } from "../LoadSelectionBuffer"
 import { BatchSendCondition } from "./BatchSendCondition"
 import { BatchState } from "./BatchState"
+import { ExtensiblePromise } from "./ExtensiblePromise"
 
 /**
  * Some work handled by a promise, some not.
@@ -30,7 +31,7 @@ interface PartialPromise<P> {
  * but it's not guaranteed that this will be before all the results are handled
  * by the caller.
  */
-export class Batch<T, U> {
+export class Batch<T, U> extends ExtensiblePromise<U[]> {
     /**
      *
      */
@@ -45,11 +46,6 @@ export class Batch<T, U> {
      *
      */
     private _intState: BatchState = BatchState.Initial
-
-    /**
-     *
-     */
-    private resultsPromise: Promise<U[]>
 
     /**
      *
@@ -89,6 +85,11 @@ export class Batch<T, U> {
             console.log(this.id, message, ...otherContent)
         }
     }
+
+    /**
+     *
+     */
+    protected promise: Promise<U[]>
 
     /**
      * True if add() will do anything, ie if this batch is unsent and still has capacity.
@@ -146,8 +147,9 @@ export class Batch<T, U> {
     constructor(func: (...ts: T[]) => Promise<U[]>,
         sendCondition: BatchSendCondition = {}, delay = false
     ) {
+        super()
         this.selectionBuffer = new LoadSelectionBuffer<T>(sendCondition.timeoutMs ?? null, sendCondition.limit, delay)
-        this.resultsPromise = this.selectionBuffer.then(
+        this.promise = this.selectionBuffer.then(
             async backlog => {
                 this._intState = BatchState.Sent
                 this.debugLog("Selection resolved with buffer", backlog)
@@ -194,7 +196,7 @@ export class Batch<T, U> {
         this.intState = BatchState.Waiting
 
         const offset = this.selectionBuffer.size
-        const promise = this.resultsPromise.then(results => {
+        const promise = this.promise.then(results => {
             if(this.intState == BatchState.Aborted) {
                 throw new Cancelled()
             }
@@ -217,6 +219,6 @@ export class Batch<T, U> {
      */
     finish() {
         this.selectionBuffer.finish()
-        return this.resultsPromise
+        return this.promise
     }
 }
