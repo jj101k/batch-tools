@@ -80,14 +80,14 @@ export class Batch<T, U> extends ExtensiblePromise<U[]> {
      * true after the batch is sent has no effect.
      */
     get delay() {
-        return this.selectionBuffer.defer
+        return this.selectionBuffer.delay
     }
 
     /**
      *
      */
     set delay(v) {
-        this.selectionBuffer.defer = v
+        this.selectionBuffer.delay = v
         if (this.intState == BatchState.ReadyToSend && !v) {
             this.intState = BatchState.Sent
         }
