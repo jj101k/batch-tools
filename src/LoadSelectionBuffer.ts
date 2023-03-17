@@ -1,4 +1,5 @@
 import { InvalidState } from "./Errors"
+import { Batchable } from "./LowLevel/Batchable"
 import { ExtensiblePromise } from "./LowLevel/ExtensiblePromise"
 import { TriggerPromise } from "./LowLevel/TriggerPromise"
 
@@ -17,7 +18,7 @@ import { TriggerPromise } from "./LowLevel/TriggerPromise"
  * bearing on when actions which were in turn triggered by the selection were
  * completed.
  */
-export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
+export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> implements Batchable<I> {
     /**
      *
      */

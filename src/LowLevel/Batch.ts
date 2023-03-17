@@ -1,23 +1,10 @@
 import { Cancelled, InvalidState } from "../Errors"
 import { LoadSelectionBuffer } from "../LoadSelectionBuffer"
+import { Batchable } from "./Batchable"
 import { BatchSendCondition } from "./BatchSendCondition"
 import { BatchState } from "./BatchState"
 import { ExtensiblePromise } from "./ExtensiblePromise"
-
-/**
- * Some work handled by a promise, some not.
- */
-interface PartialPromise<P> {
-    /**
-     * The promise used
-     */
-    promise: Promise<P>
-    /**
-     * The amount of work which could not be handled. This is guaranteed to be
-     * at the end of the list.
-     */
-    remaining: number
-}
+import { PartialPromise } from "./PartialPromise"
 
 /**
  * This represents a single batch of actions to take. It can be finished either
@@ -31,7 +18,7 @@ interface PartialPromise<P> {
  * but it's not guaranteed that this will be before all the results are handled
  * by the caller.
  */
-export class Batch<T, U> extends ExtensiblePromise<U[]> {
+export class Batch<T, U> extends ExtensiblePromise<U[]> implements Batchable<T, U> {
     /**
      *
      */
