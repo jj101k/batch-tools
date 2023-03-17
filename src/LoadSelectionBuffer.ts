@@ -85,6 +85,13 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
     /**
      *
      */
+    get canAdd() {
+        return this.size < this.bufferCapacity
+    }
+
+    /**
+     *
+     */
     get defer() {
         return this._defer
     }
@@ -96,13 +103,6 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
             this.debugLog("Resolve - defer flag cleared")
             this.resolveOnce()
         }
-    }
-
-    /**
-     *
-     */
-    get isFull() {
-        return this.size >= this.bufferCapacity
     }
 
     /**

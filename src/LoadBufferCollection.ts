@@ -35,7 +35,7 @@ export class LoadBufferCollection<K, R> {
     protected get currentLoadResultBuffer() {
         // FIXME race: it may have resolved
         const lastLoadResultBuffer = this.loadResultBuffers[this.loadResultBuffers.length - 1]
-        if(!lastLoadResultBuffer || lastLoadResultBuffer.buffer.isFull) {
+        if(!lastLoadResultBuffer?.buffer.canAdd) {
             const buffer = this.buildLoadSelectionBuffer()
             const promise = buffer.then(this.handler)
             buffer.then(() => {
