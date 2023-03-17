@@ -71,7 +71,7 @@ export class Batch<T, U> extends ExtensiblePromise<U[]> {
      * True if add() will do anything, ie if this batch is unsent and still has capacity.
      */
     get canAdd() {
-        return this.intState < BatchState.Sent && this.selectionBuffer.canAdd
+        return this.selectionBuffer.canAdd
     }
 
     /**

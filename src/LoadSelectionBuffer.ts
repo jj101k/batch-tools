@@ -86,7 +86,7 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> {
      *
      */
     get canAdd() {
-        return this.size < this.bufferCapacity
+        return !this.resolved && !this.aborted && this.size < this.bufferCapacity
     }
 
     /**
