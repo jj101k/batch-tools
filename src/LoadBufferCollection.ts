@@ -33,7 +33,6 @@ export class LoadBufferCollection<K, R> {
      *
      */
     protected get currentLoadResultBuffer() {
-        // FIXME race: it may have resolved
         const lastLoadResultBuffer = this.loadResultBuffers[this.loadResultBuffers.length - 1]
         if(!lastLoadResultBuffer?.buffer.canAdd) {
             const buffer = this.buildLoadSelectionBuffer()
