@@ -41,7 +41,7 @@ export class BatchToolsSingle<T, U> extends Debuggable {
                 this.batches.push(this.lastActiveBatch)
             }
             this.lastActiveBatch = new Batch(
-                this.func,
+                this.handler,
                 this.sendCondition,
                 this.batches.length + 1 > this.parallelLimit
             )
@@ -116,11 +116,11 @@ export class BatchToolsSingle<T, U> extends Debuggable {
 
     /**
      *
-     * @param func The action to be performed
+     * @param handler Somewhat like .then() but can be called many times
      * @param sendCondition
      * @param parallelLimit How many batches to have runnable at once
      */
-    constructor(private func: (...items: T[]) => Promise<U[]>,
+    constructor(private handler: (...items: T[]) => Promise<U[]>,
         private sendCondition: BatchSendCondition = {},
         private parallelLimit = Infinity
     ) {
@@ -168,6 +168,6 @@ export class BatchToolsSingle<T, U> extends Debuggable {
         } else {
             this.debugLog("Send - nothing to send")
         }
-        this.lastActiveBatch = new Batch(this.func, this.sendCondition)
+        this.lastActiveBatch = new Batch(this.handler, this.sendCondition)
     }
 }

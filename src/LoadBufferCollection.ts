@@ -57,7 +57,7 @@ export class LoadBufferCollection<K, R> {
 
     /**
      *
-     * @param handler
+     * @param handler Somewhat like .then() but can be called many times
      * @param buildLoadSelectionBuffer
      */
     constructor(protected handler: (items: K[]) => Promise<Map<K, R>>,
