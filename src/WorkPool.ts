@@ -1,4 +1,5 @@
 import { InvalidState } from "./Errors"
+import { Debuggable } from "./LowLevel/Debuggable"
 import { TriggerPromise } from "./LowLevel/TriggerPromise"
 
 /**
@@ -28,7 +29,7 @@ type PromisableFunction<T = any> = () => (Promise<T> | T)
  *  pool.add(bar)
  * ])
  */
-export class WorkPool {
+export class WorkPool extends Debuggable {
     /**
      *
      */
@@ -63,11 +64,6 @@ export class WorkPool {
      *
      */
     private avoidingLoop = false
-
-    /**
-     *
-     */
-    private debug = false
 
     /**
      * @see activateItems()
@@ -158,16 +154,6 @@ export class WorkPool {
 
     /**
      *
-     * @param message
-     */
-    private debugLog(message: string) {
-        if (this.debug) {
-            console.log(message)
-        }
-    }
-
-    /**
-     *
      * @param item
      * @returns A promise
      */
@@ -220,6 +206,7 @@ export class WorkPool {
     constructor(public readonly capacity: number,
         private readonly maxActivationRate: {count: number, ms: number} = {count: 10_000, ms: 1_000},
     ) {
+        super()
     }
 
     /**

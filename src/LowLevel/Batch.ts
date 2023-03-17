@@ -35,16 +35,6 @@ export class Batch<T, U> extends ExtensiblePromise<U[]> {
     /**
      *
      */
-    private debug = false
-
-    /**
-     *
-     */
-    private id: number | null = null
-
-    /**
-     *
-     */
     private _intState: BatchState = BatchState.Initial
 
     /**
@@ -70,20 +60,6 @@ export class Batch<T, U> extends ExtensiblePromise<U[]> {
             throw new InvalidState("State may only move forwards")
         }
         this._intState = v
-    }
-
-    /**
-     *
-     * @param message
-     * @param otherContent
-     */
-    private debugLog(message: any, ...otherContent: any[]) {
-        if (this.debug) {
-            if(this.id === null) {
-                this.id = Math.floor(Math.random() * 1000)
-            }
-            console.log(this.id, message, ...otherContent)
-        }
     }
 
     /**

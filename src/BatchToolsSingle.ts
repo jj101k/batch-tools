@@ -2,6 +2,7 @@ import { Batch } from "./LowLevel/Batch"
 import { BatchSendCondition } from "./LowLevel/BatchSendCondition"
 import { BatchState } from "./LowLevel/BatchState"
 import { LimitExceeded } from "./Errors"
+import { Debuggable } from "./LowLevel/Debuggable"
 
 /**
  * @see Batch for lower-level functionality.
@@ -15,22 +16,12 @@ import { LimitExceeded } from "./Errors"
  * This class only handles single items, if you want to load several see
  * BatchTools and BatchToolsIterable.
  */
-export class BatchToolsSingle<T, U> {
+export class BatchToolsSingle<T, U> extends Debuggable {
     /**
      * Batches which are no longer accepting entries, ie ready to send or later.
      * This includes ones which are simply not finished yet.
      */
     private batches: Batch<T, U>[] = []
-
-    /**
-     *
-     */
-    private debug = false
-
-    /**
-     *
-     */
-    private id: number | null = null
 
     /**
      * The batch which is currently (or most recently) accepting entries. By the
@@ -56,20 +47,6 @@ export class BatchToolsSingle<T, U> {
             )
         }
         return this.lastActiveBatch
-    }
-
-    /**
-     *
-     * @param message
-     * @param otherContent
-     */
-    private debugLog(message: any, ...otherContent: any[]) {
-        if (this.debug) {
-            if(this.id === null) {
-                this.id = Math.floor(Math.random() * 1000)
-            }
-            console.log(this.id, message, ...otherContent)
-        }
     }
 
     /**
@@ -147,7 +124,7 @@ export class BatchToolsSingle<T, U> {
         private sendCondition: BatchSendCondition = {},
         private parallelLimit = Infinity
     ) {
-
+        super()
     }
 
     /**
