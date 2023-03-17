@@ -1,4 +1,5 @@
 import { LoadSelectionBuffer } from "./LoadSelectionBuffer"
+import { BatchSendCondition } from "./LowLevel/BatchSendCondition"
 
 /**
  *
@@ -31,6 +32,14 @@ export class LoadBufferCollection<K, R> {
 
     /**
      *
+     * @returns
+     */
+    protected buildLoadSelectionBuffer(): LoadSelectionBuffer<any> {
+        return new LoadSelectionBuffer(this.sendCondition.timeoutMs, this.sendCondition.limit)
+    }
+
+    /**
+     *
      */
     protected get currentLoadResultBuffer() {
         const lastLoadResultBuffer = this.loadResultBuffers[this.loadResultBuffers.length - 1]
@@ -58,10 +67,10 @@ export class LoadBufferCollection<K, R> {
     /**
      *
      * @param handler Somewhat like .then() but can be called many times
-     * @param buildLoadSelectionBuffer
+     * @param sendCondition
      */
     constructor(protected handler: (items: K[]) => Promise<Map<K, R>>,
-        private buildLoadSelectionBuffer: () => LoadSelectionBuffer<any> = () => new LoadSelectionBuffer()) {
+        private sendCondition: BatchSendCondition = {}) {
     }
 
     /**
