@@ -25,7 +25,7 @@ class BatchToolsConsumer {
     }
     get fooBatchedManual() {
         if(!this._c_fooBatchedManual) {
-            this._c_fooBatchedManual = new BatchTools(this.foo.bind(this))
+            this._c_fooBatchedManual = new BatchTools(this.foo.bind(this), {})
         }
         return this._c_fooBatchedManual
     }

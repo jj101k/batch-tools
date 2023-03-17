@@ -6,7 +6,7 @@ const debug = false
 
 describe("Batch is usable", () => {
     it("runs normally with no send condition and no delay flag", async () => {
-        const batch = new Batch<number, number>((...ts) => Promise.resolve(ts))
+        const batch = new Batch<number, number>((...ts) => Promise.resolve(ts), {})
         const resultsOut = new Set<number>()
         for(let i = 0; i < 20; i++) {
             const result = batch.add(i)

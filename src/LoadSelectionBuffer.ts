@@ -1,5 +1,6 @@
 import { InvalidState } from "./Errors"
 import { Batchable } from "./LowLevel/Batchable"
+import { BatchSendCondition } from "./LowLevel/BatchSendCondition"
 import { ExtensiblePromise } from "./LowLevel/ExtensiblePromise"
 import { TriggerPromise } from "./LowLevel/TriggerPromise"
 
@@ -38,6 +39,20 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> implements Ba
      *
      */
     private timeout: NodeJS.Timeout | null = null
+
+    /**
+     *
+     */
+    private get bufferCapacity() {
+        return this.sendCondition.limit ?? Infinity
+    }
+
+    /**
+     *
+     */
+    private get delayMs() {
+        return this.sendCondition.timeoutMs ?? null
+    }
 
     /**
      * @throws
@@ -129,17 +144,15 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> implements Ba
 
     /**
      *
-     * @param delayMs
-     * @param bufferCapacity
+     * @param sendCondition
      * @param delay
      */
     constructor(
-        private delayMs: number | null = 50,
-        private bufferCapacity = Infinity,
+        private sendCondition: BatchSendCondition = {timeoutMs: 50},
         private _delay = false
     ) {
         super()
-        this.debugLog({delayMs, bufferCapacity, delay: _delay})
+        this.debugLog({sendCondition, delay: _delay})
 
         this.promise = new TriggerPromise(() => [...this.items])
     }

@@ -35,7 +35,7 @@ export class LoadBufferCollection<K, R> {
      * @returns
      */
     protected buildLoadSelectionBuffer(): LoadSelectionBuffer<any> {
-        return new LoadSelectionBuffer(this.sendCondition.timeoutMs, this.sendCondition.limit)
+        return new LoadSelectionBuffer(this.sendCondition)
     }
 
     /**
@@ -70,7 +70,7 @@ export class LoadBufferCollection<K, R> {
      * @param sendCondition
      */
     constructor(protected handler: (items: K[]) => Promise<Map<K, R>>,
-        private sendCondition: BatchSendCondition = {}) {
+        private sendCondition?: BatchSendCondition) {
     }
 
     /**

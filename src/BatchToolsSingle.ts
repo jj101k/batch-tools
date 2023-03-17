@@ -121,7 +121,7 @@ export class BatchToolsSingle<T, U> extends Debuggable {
      * @param parallelLimit How many batches to have runnable at once
      */
     constructor(private handler: (...items: T[]) => Promise<U[]>,
-        private sendCondition: BatchSendCondition = {},
+        private sendCondition?: BatchSendCondition,
         private parallelLimit = Infinity
     ) {
         super()

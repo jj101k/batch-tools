@@ -108,10 +108,10 @@ export class Batch<T, U> extends ExtensiblePromise<U[]> implements Batchable<T, 
      * needed.
      */
     constructor(func: (...ts: T[]) => Promise<U[]>,
-        sendCondition: BatchSendCondition = {}, delay = false
+        sendCondition?: BatchSendCondition, delay = false
     ) {
         super()
-        this.selectionBuffer = new LoadSelectionBuffer<T>(sendCondition.timeoutMs ?? null, sendCondition.limit, delay)
+        this.selectionBuffer = new LoadSelectionBuffer<T>(sendCondition, delay)
         this.promise = this.selectionBuffer.then(
             async backlog => {
                 this._intState = BatchState.Sent

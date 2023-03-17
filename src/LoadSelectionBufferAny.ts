@@ -1,6 +1,7 @@
 import { LoadSelectionBuffer } from "./LoadSelectionBuffer"
 import { PseudoMap } from "./PseudoMap"
 import { PseudoSet } from "./LowLevel/PseudoSet"
+import { BatchSendCondition } from "./LowLevel/BatchSendCondition"
 
 /**
  * @see LoadSelectionBuffer
@@ -15,15 +16,13 @@ export class LoadSelectionBufferAny<K extends string | number, I> extends LoadSe
 
     /**
      *
-     * @param delayMs
-     * @param bufferCapacity
+     * @param sendCondition
      */
     constructor(
         getKey: (item: I) => K,
-        delayMs: number = 50,
-        bufferCapacity = Infinity
+        sendCondition?: BatchSendCondition,
     ) {
-        super(delayMs, bufferCapacity)
+        super(sendCondition)
         this.pendingItems = new PseudoSet(new PseudoMap(getKey))
     }
 }
