@@ -15,7 +15,17 @@
  *
  * TL;DR: You probably want to set timeoutMs here.
  */
-export interface BatchSendCondition {
+export interface BatchSendCondition<I> {
+    /**
+     * For more complicated is-full conditions, eg. by size.
+     *
+     * @param items
+     * @returns The number of items past which no more will fit. Return
+     * n>items.length (eg. items.length + 1) if you think there's still space.
+     * Return items.length if you think it's exactly full. Return n<items.length
+     * if you think it can only fit some of the items (and then will be full).
+     */
+    fitsItems?: (items: I[]) => number
     /**
      * How many items a batch can tolerate.
      */

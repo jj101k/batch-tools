@@ -71,7 +71,7 @@ export class LoadBufferCollection<I, O> implements MultiBatchable<I, O> {
      * @param sendCondition
      */
     constructor(protected handler: (items: I[]) => Promise<Map<I, O>>,
-        private sendCondition?: BatchSendCondition) {
+        private sendCondition?: BatchSendCondition<I>) {
     }
 
     abort() {

@@ -22,7 +22,7 @@ export class LoadSelectionBufferAny<K extends string | number, I> extends LoadSe
      */
     constructor(
         getKey: (item: I) => K,
-        sendCondition?: BatchSendCondition,
+        sendCondition?: BatchSendCondition<I>,
         delay = false
     ) {
         super(sendCondition, delay)

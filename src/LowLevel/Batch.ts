@@ -18,7 +18,7 @@ import { PartialPromise } from "./PartialPromise"
  * but it's not guaranteed that this will be before all the results are handled
  * by the caller.
  */
-export class Batch<T, U> extends ExtensiblePromise<U[]> implements Batchable<T, U> {
+export class Batch<I, O> extends ExtensiblePromise<O[]> implements Batchable<I, O> {
     /**
      *
      */
@@ -27,7 +27,7 @@ export class Batch<T, U> extends ExtensiblePromise<U[]> implements Batchable<T, 
     /**
      *
      */
-    private selectionBuffer: LoadSelectionBuffer<T>
+    private selectionBuffer: LoadSelectionBuffer<I>
 
     /**
      * The internal state. Unlike the external view of the same, this is
@@ -52,7 +52,7 @@ export class Batch<T, U> extends ExtensiblePromise<U[]> implements Batchable<T, 
     /**
      *
      */
-    protected promise: Promise<U[]>
+    protected promise: Promise<O[]>
 
     /**
      * True if add() will do anything, ie if this batch is unsent and still has capacity.
@@ -107,11 +107,11 @@ export class Batch<T, U> extends ExtensiblePromise<U[]> implements Batchable<T, 
      * it effectively condition-limited. Set "delay" to false when no longer
      * needed.
      */
-    constructor(func: (...ts: T[]) => Promise<U[]>,
-        sendCondition?: BatchSendCondition, delay = false
+    constructor(func: (...ts: I[]) => Promise<O[]>,
+        sendCondition?: BatchSendCondition<I>, delay = false
     ) {
         super()
-        this.selectionBuffer = new LoadSelectionBuffer<T>(sendCondition, delay)
+        this.selectionBuffer = new LoadSelectionBuffer<I>(sendCondition, delay)
         this.promise = this.selectionBuffer.then(
             async backlog => {
                 this._intState = BatchState.Sent
@@ -146,7 +146,7 @@ export class Batch<T, U> extends ExtensiblePromise<U[]> implements Batchable<T, 
      * @returns A promise resolving to the completed work, and a number of
      * unhandled items
      */
-    add(...items: T[]): PartialPromise<U[]> {
+    add(...items: I[]): PartialPromise<O[]> {
         this.debugLog("Add")
         if (this.intState > BatchState.ReadyToSend) {
             this.debugLog("Cannot add")

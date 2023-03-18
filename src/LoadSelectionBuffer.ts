@@ -43,15 +43,21 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> implements Ba
     /**
      *
      */
-    private get bufferCapacity() {
-        return this.sendCondition.maxItems ?? Infinity
+    private get delayMs() {
+        return this.sendCondition.timeoutMs ?? null
     }
 
     /**
      *
      */
-    private get delayMs() {
-        return this.sendCondition.timeoutMs ?? null
+    private get isFull() {
+        if(this.sendCondition.fitsItems) {
+            return this.sendCondition.fitsItems([...this.pendingItems]) <= this.pendingItems.size
+        } else if(this.sendCondition.maxItems !== undefined) {
+            return this.size + 1 > this.sendCondition.maxItems
+        } else {
+            return false
+        }
     }
 
     /**
@@ -73,6 +79,21 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> implements Ba
         if(!this.delay) {
             this.debugLog("Resolve")
             this.resolveOnce()
+        }
+    }
+
+    /**
+     *
+     * @param items
+     */
+    private loadableItems(items: I[]) {
+        if(this.sendCondition.fitsItems) {
+            const fitCount = this.sendCondition.fitsItems([...this.pendingItems, ...items])
+            return items.slice(0, fitCount - this.pendingItems.size)
+        } else if(this.sendCondition.maxItems !== undefined) {
+            return items.slice(0, this.sendCondition.maxItems - this.pendingItems.size)
+        } else {
+            return items
         }
     }
 
@@ -102,7 +123,7 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> implements Ba
      *
      */
     get canAdd() {
-        return !this.resolved && !this.aborted && this.size < this.bufferCapacity
+        return !this.resolved && !this.aborted && !this.isFull
     }
 
     /**
@@ -148,7 +169,7 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> implements Ba
      * @param delay
      */
     constructor(
-        private sendCondition: BatchSendCondition = {timeoutMs: 50},
+        private sendCondition: BatchSendCondition<I> = {timeoutMs: 50},
         private _delay = false
     ) {
         super()
@@ -194,12 +215,12 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> implements Ba
                 this.conditionallyResolve()
             }, this.delayMs)
         }
-        const loadableItems = items.slice(0, this.bufferCapacity - this.pendingItems.size)
+        const loadableItems = this.loadableItems(items)
         for(const item of loadableItems) {
             this.pendingItems.add(item)
             this.debugLog("Added", item, this.pendingItems.size)
         }
-        if (this.pendingItems.size >= this.bufferCapacity) {
+        if (this.isFull) {
             this.debugLog("Resolve on buffer fill")
             this.conditionallyResolve()
         }
