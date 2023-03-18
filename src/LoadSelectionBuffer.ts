@@ -44,7 +44,7 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> implements Ba
      *
      */
     private get bufferCapacity() {
-        return this.sendCondition.limit ?? Infinity
+        return this.sendCondition.maxItems ?? Infinity
     }
 
     /**

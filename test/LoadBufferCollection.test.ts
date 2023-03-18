@@ -5,7 +5,7 @@ import { TestHelper } from "./TestHelper"
 describe("Load buffer collections", () => {
     it("can handle basic buffering duties", async () => {
         const simpleBatchFunction = (ts: number[]) => Promise.resolve(new Map(ts.map(t => [t, t])))
-        const buffer = new LoadBufferCollection(simpleBatchFunction, {timeoutMs: 5, limit: 5})
+        const buffer = new LoadBufferCollection(simpleBatchFunction, {timeoutMs: 5, maxItems: 5})
 
         const result = new Map<number, number>()
 

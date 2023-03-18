@@ -19,7 +19,7 @@ export interface BatchSendCondition {
     /**
      * How many items a batch can tolerate.
      */
-    limit?: number
+    maxItems?: number
     /**
      * You almost certainly want to set this, otherwise you may need to send
      * batches manually. A good number might be 50(ms).
