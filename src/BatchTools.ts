@@ -204,8 +204,8 @@ export class BatchTools<I, O> extends Debuggable implements MultiBatchable<I, O>
      * @returns
      */
     async include(item: I): Promise<O> {
-        const promises = this.getBatchPromises(item)
-        const result = await promises[0]
+        const [promise] = this.getBatchPromises(item)
+        const result = await promise
         return result[0]
     }
 
