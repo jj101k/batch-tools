@@ -87,13 +87,16 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> implements Ba
      * @param items
      */
     private loadableItems(items: I[]) {
+        let fitCount: number | undefined
         if(this.sendCondition.fitsItems) {
-            const fitCount = this.sendCondition.fitsItems([...this.pendingItems, ...items])
-            return items.slice(0, fitCount - this.pendingItems.size)
+            fitCount = this.sendCondition.fitsItems([...this.pendingItems, ...items])
         } else if(this.sendCondition.maxItems !== undefined) {
-            return items.slice(0, this.sendCondition.maxItems - this.pendingItems.size)
-        } else {
+            fitCount = this.sendCondition.maxItems
+        }
+        if(fitCount === undefined) {
             return items
+        } else {
+            return items.slice(0, fitCount - this.pendingItems.size)
         }
     }
 
