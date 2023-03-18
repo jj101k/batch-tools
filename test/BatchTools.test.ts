@@ -1,5 +1,5 @@
 import * as assert from "assert"
-import {BatchTools} from "../src"
+import {BatchFitCount, BatchTools} from "../src"
 import { TestHelper } from "./TestHelper"
 
 const debug = false
@@ -16,13 +16,13 @@ class BatchToolsConsumer {
 
     get fooBatchedLimit() {
         if(!this._c_fooBatchedLimit) {
-            this._c_fooBatchedLimit = new BatchTools(this.foo.bind(this), {timeoutMs: preferredTimeout, maxItems: 3})
+            this._c_fooBatchedLimit = new BatchTools(this.foo.bind(this), {timeoutMs: preferredTimeout, fits: new BatchFitCount(3)})
         }
         return this._c_fooBatchedLimit
     }
     get fooBatchedLimitParallelLimit() {
         if(!this._c_fooBatchedLimitParallelLimit) {
-            this._c_fooBatchedLimitParallelLimit = new BatchTools(this.foo.bind(this), {timeoutMs: 50, maxItems: 2}, 2)
+            this._c_fooBatchedLimitParallelLimit = new BatchTools(this.foo.bind(this), {timeoutMs: 50, fits: new BatchFitCount(2)}, 2)
         }
         return this._c_fooBatchedLimitParallelLimit
     }

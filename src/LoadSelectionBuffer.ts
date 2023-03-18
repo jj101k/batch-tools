@@ -51,10 +51,8 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> implements Ba
      *
      */
     private get isFull() {
-        if(this.sendCondition.fitsItems) {
-            return this.sendCondition.fitsItems([...this.pendingItems]) <= this.pendingItems.size
-        } else if(this.sendCondition.maxItems !== undefined) {
-            return this.size + 1 > this.sendCondition.maxItems
+        if(this.sendCondition.fits) {
+            return this.sendCondition.fits.fitsItems([...this.pendingItems]) <= this.pendingItems.size
         } else {
             return false
         }
@@ -87,16 +85,11 @@ export class LoadSelectionBuffer<I> extends ExtensiblePromise<I[]> implements Ba
      * @param items
      */
     private loadableItems(items: I[]) {
-        let fitCount: number | undefined
-        if(this.sendCondition.fitsItems) {
-            fitCount = this.sendCondition.fitsItems([...this.pendingItems, ...items])
-        } else if(this.sendCondition.maxItems !== undefined) {
-            fitCount = this.sendCondition.maxItems
-        }
-        if(fitCount === undefined) {
-            return items
-        } else {
+        if(this.sendCondition.fits) {
+            const fitCount = this.sendCondition.fits.fitsItems([...this.pendingItems, ...items])
             return items.slice(0, fitCount - this.pendingItems.size)
+        } else {
+            return items
         }
     }
 

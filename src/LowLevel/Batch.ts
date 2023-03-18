@@ -158,6 +158,8 @@ export class Batch<I, O> extends ExtensiblePromise<O[]> implements Batchable<I, 
 
         this.intState = BatchState.Waiting
 
+        // TODO adjust this to use a sparse array to detect removed items
+
         const offset = this.selectionBuffer.size
         const promise = this.promise.then(results => {
             if(this.intState == BatchState.Aborted) {

@@ -1,11 +1,11 @@
 import * as assert from "assert"
-import { LoadBufferCollection } from "../src"
+import { BatchFitCount, LoadBufferCollection } from "../src"
 import { TestHelper } from "./TestHelper"
 
 describe("Load buffer collections", () => {
     it("can handle basic buffering duties", async () => {
         const simpleBatchFunction = (ts: number[]) => Promise.resolve(new Map(ts.map(t => [t, t])))
-        const buffer = new LoadBufferCollection(simpleBatchFunction, {timeoutMs: 5, maxItems: 5})
+        const buffer = new LoadBufferCollection(simpleBatchFunction, {timeoutMs: 5, fits: new BatchFitCount(5)})
 
         const result = new Map<number, number>()
 

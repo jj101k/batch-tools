@@ -1,3 +1,5 @@
+import { BatchFitDetector } from "../BatchFitDetector"
+
 /**
  * The theme here is "turn O(n) actions in quick succession into as few as we
  * can manage". The main mitigation is to set a timeout before sending all of
@@ -17,19 +19,9 @@
  */
 export interface BatchSendCondition<I> {
     /**
-     * For more complicated is-full conditions, eg. by size.
      *
-     * @param items
-     * @returns The number of items past which no more will fit. Return
-     * n>items.length (eg. items.length + 1) if you think there's still space.
-     * Return items.length if you think it's exactly full. Return n<items.length
-     * if you think it can only fit some of the items (and then will be full).
      */
-    fitsItems?: (items: I[]) => number
-    /**
-     * How many items a batch can tolerate.
-     */
-    maxItems?: number
+    fits?: BatchFitDetector<I>
     /**
      * You almost certainly want to set this, otherwise you may need to send
      * batches manually. A good number might be 50(ms).
