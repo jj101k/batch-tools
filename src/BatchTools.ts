@@ -146,21 +146,6 @@ export class BatchTools<I, O> extends Debuggable implements MultiBatchable<I, O>
     }
 
     /**
-     * Handle one item. This will put it in a batch behind the scenes, and in
-     * effect is the same as calling func(item) but with different timing.
-     *
-     * This should be your primary entry point.
-     *
-     * @param item
-     * @returns
-     */
-    async include(item: I): Promise<O> {
-        const promises = this.getBatchPromises(item)
-        const result = await promises[0]
-        return result[0]
-    }
-
-    /**
      * Adds multiple items to one or more batches. Returns when done.
      *
      * Important note: this will only be done when all of them are, which means
@@ -207,6 +192,21 @@ export class BatchTools<I, O> extends Debuggable implements MultiBatchable<I, O>
                 yield v
             }
         }
+    }
+
+    /**
+     * Handle one item. This will put it in a batch behind the scenes, and in
+     * effect is the same as calling func(item) but with different timing.
+     *
+     * This should be your primary entry point.
+     *
+     * @param item
+     * @returns
+     */
+    async include(item: I): Promise<O> {
+        const promises = this.getBatchPromises(item)
+        const result = await promises[0]
+        return result[0]
     }
 
     /**
