@@ -82,7 +82,7 @@ class BatchToolTestWrapper {
         }
     }
     async trySingleCall(n: string) {
-        const r = await this.batchTools.call(n)
+        const r = await this.batchTools.include(n)
         if(debug) console.log("Storing 1 result")
         this.results.set(n, r)
     }

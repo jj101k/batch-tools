@@ -1,5 +1,6 @@
 import { LoadSelectionBuffer } from "./LoadSelectionBuffer"
 import { BatchSendCondition } from "./LowLevel/BatchSendCondition"
+import { MultiBatchable } from "./MultiBatchable"
 
 /**
  *
@@ -24,11 +25,11 @@ interface LoadResultBuffer<K, R> {
  * This can safely be filled, allowed to drain, then refilled. For that reason
  * it doesn't have a promise interface.
  */
-export class LoadBufferCollection<K, R> {
+export class LoadBufferCollection<I, O> implements MultiBatchable<I, O> {
     /**
      *
      */
-    private loadResultBuffers: LoadResultBuffer<K, R>[] = []
+    private loadResultBuffers: LoadResultBuffer<I, O>[] = []
 
     /**
      *
@@ -62,22 +63,17 @@ export class LoadBufferCollection<K, R> {
     /**
      *
      */
-    protected items = new Map<K, LoadResultBuffer<K, R>>()
+    protected items = new Map<I, LoadResultBuffer<I, O>>()
 
     /**
      *
      * @param handler Somewhat like .then() but can be called many times
      * @param sendCondition
      */
-    constructor(protected handler: (items: K[]) => Promise<Map<K, R>>,
+    constructor(protected handler: (items: I[]) => Promise<Map<I, O>>,
         private sendCondition?: BatchSendCondition) {
     }
 
-    /**
-     * This remove and halt all the load buffers.
-     *
-     * @returns true if the action did anything.
-     */
     abort() {
         if(this.loadResultBuffers.length) {
             for(const resultBuffer of this.loadResultBuffers) {
@@ -91,14 +87,7 @@ export class LoadBufferCollection<K, R> {
         }
     }
 
-    /**
-     * Adds an item to a batch.
-     *
-     * @param item
-     * @returns A promise resolving with the item's resultant value or, if
-     * removed, undefined.
-     */
-    async include(item: K): Promise<R> {
+    async include(item: I): Promise<O> {
         let loadResultBuffer = this.items.get(item)
         if(!loadResultBuffer) {
             loadResultBuffer = this.currentLoadResultBuffer
@@ -122,7 +111,7 @@ export class LoadBufferCollection<K, R> {
      * @param item
      * @returns
      */
-    remove(item: K): boolean {
+    remove(item: I): boolean {
         const bufferReference = this.items.get(item)
         if(bufferReference) {
             this.items.delete(item)
