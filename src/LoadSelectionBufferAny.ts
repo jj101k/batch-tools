@@ -18,12 +18,14 @@ export class LoadSelectionBufferAny<K extends string | number, I> extends LoadSe
      *
      * @param getKey
      * @param sendCondition
+     * @param delay
      */
     constructor(
         getKey: (item: I) => K,
         sendCondition?: BatchSendCondition,
+        delay = false
     ) {
-        super(sendCondition)
+        super(sendCondition, delay)
         this.pendingItems = new PseudoSet(new PseudoMap(getKey))
     }
 }
