@@ -16,6 +16,7 @@ export class LoadSelectionBufferAny<K extends string | number, I> extends LoadSe
 
     /**
      *
+     * @param getKey
      * @param sendCondition
      */
     constructor(
