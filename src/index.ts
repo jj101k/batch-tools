@@ -1,6 +1,4 @@
 export * from "./BatchTools"
-export * from "./BatchToolsIterable"
-export * from "./BatchToolsSingle"
 export * as Errors from "./Errors"
 export * from "./LoadBufferCollection"
 export * from "./LoadSelectionBuffer"
