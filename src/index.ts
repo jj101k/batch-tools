@@ -1,3 +1,4 @@
+export * from "./BatchFitByteSize"
 export * from "./BatchFitCount"
 export * from "./BatchTools"
 export * as Errors from "./Errors"
