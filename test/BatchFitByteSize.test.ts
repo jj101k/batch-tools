@@ -75,12 +75,79 @@ describe("Batch fit (byte size)", () => {
             }
         }
     })
+    describe("General accuracy", () => {
+        const one = {id: 1, name: "foo"}
+        const two = {id: 2, name: "bar"}
+        const lengthOne = JSON.stringify([one]).length
+        const three = {id: 3, name: "baz"}
+        const lengthTwo = JSON.stringify([one, two]).length
+
+        it("produces the right kind of size test", () => {
+            const shortForOne = new BatchFitByteSize(lengthOne - 1).fitsItems([one])
+            assert.equal(shortForOne, 0, `${lengthOne - 1} is not enough for one item`)
+            const matchForOne = new BatchFitByteSize(lengthOne).fitsItems([one])
+            assert.equal(matchForOne, 1, `${lengthOne} is enough for one item`)
+
+            const shortForTwo = new BatchFitByteSize(lengthTwo - 1).fitsItems([one, two])
+            assert.equal(shortForTwo, 1, `${lengthTwo - 1} is not enough for two items`)
+            const matchForTwo = new BatchFitByteSize(lengthTwo).fitsItems([one, two])
+            assert.equal(matchForTwo, 2, `${lengthTwo} is enough for two items`)
+        })
+        it("produces the right kind of size test", () => {
+            const three = {id: 3, name: "baz"}
+            const shortForTwo2 = new BatchFitByteSize(lengthTwo - 1).fitsItems([one, two, three])
+            assert.equal(shortForTwo2, 1, `${lengthTwo - 1} is not enough for two items`)
+            const matchForTwo2 = new BatchFitByteSize(lengthTwo).fitsItems([one, two, three])
+            assert.equal(matchForTwo2, 1, `${lengthTwo} is NOT enough for two items (iterable)`)
+
+            const shortForTwo3 = new BatchFitByteSize(lengthTwo - 1, (items: any[]) => JSON.stringify(items), false).fitsItems([one, two, three])
+            assert.equal(shortForTwo3, 1, `${lengthTwo - 1} is not enough for two items`)
+            const matchForTwo3 = new BatchFitByteSize(lengthTwo, (items: any[]) => JSON.stringify(items), false).fitsItems([one, two, three])
+            assert.equal(matchForTwo3, 2, `${lengthTwo} is enough for two items (BS)`)
+        })
+    })
     describe("Efficiency", () => {
         const sizeItemsComplex: [number, any[]][] = testSizes.map(testSize => [testSize, [...new Array(testSize)].map((_, i) => ({
             id: i,
             v: Math.random()
         }))])
-        it("is faster at iteration than binary search", function() {
+        it("is fairly quick at binary search", function() {
+            const fitter = new BatchFitByteSize(50, (items: number[]) => JSON.stringify(items), false)
+            let t: number
+            let before: Date
+            let after: Date
+
+            t = 0
+            before = new Date()
+            for(const [, items] of sizeItemsComplex) {
+                for(let s = 0; s < 1_000; s++) {
+                    t += fitter.fitsItems(items)
+                }
+            }
+            after = new Date()
+
+            const time = after.valueOf() - before.valueOf()
+            assert(time < 500, "Finishes 1,000 item checks in <0.5s")
+        })
+        it("is quick at iteration", function() {
+            const fitter = new BatchFitByteSize(50, (items: number[]) => JSON.stringify(items), true)
+            let t: number
+            let before: Date
+            let after: Date
+
+            t = 0
+            before = new Date()
+            for(const [, items] of sizeItemsComplex) {
+                for(let s = 0; s < 1_000; s++) {
+                    t += fitter.fitsItems(items)
+                }
+            }
+            after = new Date()
+
+            const time = after.valueOf() - before.valueOf()
+            assert(time < 250, "Finishes 1,000 item checks in <0.25s")
+        })
+        it("is faster at iteration but better at binary search", function() {
             this.slow(1000)
             this.timeout(2000)
             const fitterBS = new BatchFitByteSize(50, (items: number[]) => JSON.stringify(items), false)
@@ -99,6 +166,7 @@ describe("Batch fit (byte size)", () => {
             after = new Date()
 
             const timeBS = after.valueOf() - before.valueOf()
+            const estimateBS = t
 
             t = 0
             before = new Date()
@@ -110,8 +178,10 @@ describe("Batch fit (byte size)", () => {
             after = new Date()
 
             const timeIterable = after.valueOf() - before.valueOf()
+            const estimateIterable = t
 
             assert(timeIterable < timeBS, "Iterable takes less time than BS")
+            assert(estimateBS <= estimateIterable, "BS is more accurate (less pessimistic) than iterable")
         })
     })
 })
