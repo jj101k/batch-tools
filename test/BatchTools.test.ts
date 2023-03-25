@@ -1,5 +1,6 @@
+import { BatchFitCount } from "@jdframe/selection-buffer"
 import * as assert from "assert"
-import {BatchFitCount, BatchTools} from "../src"
+import {BatchTools} from "../src"
 import { TestHelper } from "./TestHelper"
 
 const debug = false

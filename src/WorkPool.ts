@@ -1,6 +1,5 @@
-import { InvalidState } from "./Errors"
-import { Debuggable } from "./LowLevel/Debuggable"
-import { TriggerPromise } from "./LowLevel/TriggerPromise"
+import { Debuggable, TriggerPromise } from "@jdframe/core"
+import { SelectionErrors } from "@jdframe/selection-buffer"
 
 /**
  *
@@ -230,7 +229,7 @@ export class WorkPool extends Debuggable {
      */
     add<T = any>(item: PromisableFunction<T>) {
         if(this.aborted) {
-            throw new InvalidState("Cannot add - aborted")
+            throw new SelectionErrors.InvalidState("Cannot add - aborted")
         }
         const p = this.pushPromise(item)
         this.activateItems()
@@ -246,7 +245,7 @@ export class WorkPool extends Debuggable {
      */
     addMulti<T = any>(items: Array<PromisableFunction<T>>) {
         if(this.aborted) {
-            throw new InvalidState("Cannot add - aborted")
+            throw new SelectionErrors.InvalidState("Cannot add - aborted")
         }
         const ps: Array<Promise<any>> = []
         for(const item of items) {

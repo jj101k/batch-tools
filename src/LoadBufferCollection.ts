@@ -1,5 +1,4 @@
-import { LoadSelectionBuffer } from "./LoadSelectionBuffer"
-import { BatchSendCondition } from "./LowLevel/BatchSendCondition"
+import { BatchSendCondition, LoadSelectionBuffer } from "@jdframe/selection-buffer"
 import { MultiBatchable } from "./MultiBatchable"
 
 /**

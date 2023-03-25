@@ -1,5 +1,6 @@
+import { BatchFitCount } from "@jdframe/selection-buffer"
 import * as assert from "assert"
-import { BatchFitCount, LoadBufferCollection } from "../src"
+import { LoadBufferCollection } from "../src"
 import { TestHelper } from "./TestHelper"
 
 describe("Load buffer collections", () => {

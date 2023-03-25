@@ -1,9 +1,6 @@
-import { Cancelled, InvalidState } from "../Errors"
-import { LoadSelectionBuffer } from "../LoadSelectionBuffer"
-import { Batchable } from "./Batchable"
-import { BatchSendCondition } from "./BatchSendCondition"
+import { Errors, ExtensiblePromise } from "@jdframe/core"
+import { Batchable, BatchSendCondition, LoadSelectionBuffer, SelectionErrors } from "@jdframe/selection-buffer"
 import { BatchState } from "./BatchState"
-import { ExtensiblePromise } from "./ExtensiblePromise"
 import { PartialPromise } from "./PartialPromise"
 
 /**
@@ -44,7 +41,7 @@ export class Batch<I, O> extends ExtensiblePromise<O[]> implements Batchable<I, 
         if (v == this._intState) {
             return // Nothing to do
         } else if (v < this._intState) {
-            throw new InvalidState("State may only move forwards")
+            throw new SelectionErrors.InvalidState("State may only move forwards")
         }
         this._intState = v
     }
@@ -163,7 +160,7 @@ export class Batch<I, O> extends ExtensiblePromise<O[]> implements Batchable<I, 
         const offset = this.selectionBuffer.size
         const promise = this.promise.then(results => {
             if(this.intState == BatchState.Aborted) {
-                throw new Cancelled()
+                throw new Errors.Cancelled()
             }
             return results.slice(offset, offset + items.length)
         })

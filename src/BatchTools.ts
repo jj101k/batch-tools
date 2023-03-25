@@ -1,8 +1,7 @@
-import { LimitExceeded } from "./Errors"
+import { Debuggable } from "@jdframe/core"
+import { BatchSendCondition, SelectionErrors } from "@jdframe/selection-buffer"
 import { Batch } from "./LowLevel/Batch"
-import { BatchSendCondition } from "./LowLevel/BatchSendCondition"
 import { BatchState } from "./LowLevel/BatchState"
-import { Debuggable } from "./LowLevel/Debuggable"
 import { MultiBatchable } from "./MultiBatchable"
 
 /**
@@ -107,7 +106,7 @@ export class BatchTools<I, O> extends Debuggable implements MultiBatchable<I, O>
                 }
                 items = items.slice(items.length - result.remaining)
             } else {
-                throw new LimitExceeded("Internal error: batch could not accept any new items")
+                throw new SelectionErrors.LimitExceeded("Internal error: batch could not accept any new items")
             }
         }
         return promises
