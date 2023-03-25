@@ -12,7 +12,7 @@ export class PseudoMap<K extends string | number, R, I> implements Map<I, R> {
     }
 
     get [Symbol.toStringTag]() {
-        return "PseudoSet"
+        return "PseudoMap"
     }
 
     /**
