@@ -1,5 +1,5 @@
 import { Errors, ExtensiblePromise } from "@jdframe/core"
-import { Batchable, BatchSendCondition, LoadSelectionBuffer, SelectionErrors } from "@jdframe/selection-buffer"
+import { Batchable, BatchSendCondition, SelectionBuffer, SelectionErrors } from "@jdframe/selection-buffer"
 import { BatchState } from "./BatchState"
 import { PartialPromise } from "./PartialPromise"
 
@@ -24,7 +24,7 @@ export class Batch<I, O> extends ExtensiblePromise<O[]> implements Batchable<I, 
     /**
      *
      */
-    private selectionBuffer: LoadSelectionBuffer<I>
+    private selectionBuffer: SelectionBuffer<I>
 
     /**
      * The internal state. Unlike the external view of the same, this is
@@ -108,7 +108,7 @@ export class Batch<I, O> extends ExtensiblePromise<O[]> implements Batchable<I, 
         sendCondition?: BatchSendCondition<I>, delay = false
     ) {
         super()
-        this.selectionBuffer = new LoadSelectionBuffer<I>(sendCondition, delay)
+        this.selectionBuffer = new SelectionBuffer<I>(sendCondition, delay)
         this.promise = this.selectionBuffer.then(
             async backlog => {
                 this._intState = BatchState.Sent

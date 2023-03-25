@@ -1,4 +1,4 @@
-import { BatchSendCondition, LoadSelectionBuffer } from "@jdframe/selection-buffer"
+import { BatchSendCondition, SelectionBuffer } from "@jdframe/selection-buffer"
 import { MultiBatchable } from "./MultiBatchable"
 
 /**
@@ -8,7 +8,7 @@ interface LoadResultBuffer<K, R> {
     /**
      *
      */
-    buffer: LoadSelectionBuffer<K>
+    buffer: SelectionBuffer<K>
     /**
      *
      */
@@ -34,8 +34,8 @@ export class LoadBufferCollection<I, O> implements MultiBatchable<I, O> {
      *
      * @returns
      */
-    protected buildLoadSelectionBuffer(): LoadSelectionBuffer<any> {
-        return new LoadSelectionBuffer(this.sendCondition)
+    protected buildLoadSelectionBuffer(): SelectionBuffer<any> {
+        return new SelectionBuffer(this.sendCondition)
     }
 
     /**
