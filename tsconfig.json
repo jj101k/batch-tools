@@ -15,9 +15,10 @@
         "outDir": "dist/",
         "baseUrl": ".",
         "paths": {
-            "promise-stateful-rest": ["."]
+            "@jdframe/core": ["src"]
         },
         "experimentalDecorators": true
     },
-    "include": ["src/", "index.ts"]
+    "include": ["src/", "index.ts", "test/**/*.test.ts"],
+    "exclude": ["dist/"]
 }
