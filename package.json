@@ -1,6 +1,5 @@
 {
   "name": "batch-tools",
-  "version": "1.0.0",
   "description": "Tools for doing batch operations in Javascript/Typescript",
   "main": "index.js",
   "scripts": {
