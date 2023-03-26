@@ -1,10 +1,11 @@
 {
   "name": "batch-tools",
   "description": "Tools for doing batch operations in Javascript/Typescript",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "prepare": "rm -rf dist && tsc && webpack ./dist/webpack.js",
+    "prepare": "rm -rf dist && tsc",
     "test": "mocha -r ts-node/register test/'**.test.ts'"
   },
   "repository": {
@@ -22,9 +23,7 @@
     "@types/node": "^16.10.3",
     "mocha": "^9.1.2",
     "ts-node": "^10.3.0",
-    "typescript": "^4.4.3",
-    "webpack": "^5.69.1",
-    "webpack-cli": "^4.9.2"
+    "typescript": "^4.4.3"
   },
   "dependencies": {
     "@jdframe/core": "github:jj101k/jdframe-core",
