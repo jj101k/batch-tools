@@ -1,4 +1,4 @@
-import { Debuggable, TriggerPromise } from "@jdframe/core"
+import { Debuggable, DeconstructedPromise } from "@jdframe/core"
 import { SelectionErrors } from "@jdframe/selection-buffer"
 
 /**
@@ -74,7 +74,7 @@ export class WorkPool extends Debuggable {
     /**
      *
      */
-    private backlog: Array<TriggerPromise<any>> = []
+    private backlog: Array<DeconstructedPromise<any>> = []
 
     /**
      *
@@ -122,10 +122,9 @@ export class WorkPool extends Debuggable {
 
             const id = this.activatedJobs++
             this.addActiveJob(id)
-            item.finally(() => this.removeActiveJob(id))
 
             try {
-                item.activate()
+                item.resolve().finally(() => this.removeActiveJob(id))
             } catch(e) {
                 this.removeActiveJob(id)
                 throw e
@@ -157,11 +156,9 @@ export class WorkPool extends Debuggable {
      * @returns A promise
      */
     private pushPromise<T = any>(item: PromisableFunction<T>) {
-        return new Promise((resolve, reject) => { // Called immediately
-            const tp = new TriggerPromise(item)
-            tp.then(resolve, reject)
-            this.backlog.push(tp)
-        })
+        const {promise, actor} = DeconstructedPromise.forAction(item)
+        this.backlog.push(actor)
+        return promise
     }
 
     /**
@@ -214,7 +211,7 @@ export class WorkPool extends Debuggable {
     abort() {
         this.aborted = true
         for(const tp of this.backlog) {
-            tp.cancel()
+            tp.reject()
         }
         this.backlog = []
     }

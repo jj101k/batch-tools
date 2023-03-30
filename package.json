@@ -26,7 +26,7 @@
     "typescript": "^4.4.3"
   },
   "dependencies": {
-    "@jdframe/core": "github:jj101k/jdframe-core",
-    "@jdframe/selection-buffer": "github:jj101k/jdframe-selection-buffer"
+    "@jdframe/core": "github:jj101k/jdframe-core#v1.1.2",
+    "@jdframe/selection-buffer": "github:jj101k/jdframe-selection-buffer#v1.1.0"
   }
 }
