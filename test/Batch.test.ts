@@ -1,6 +1,6 @@
+import { Timeout } from "@jdframe/core"
 import * as assert from "assert"
 import { Batch } from "../src/LowLevel/Batch"
-import { TestHelper } from "./TestHelper"
 
 const debug = false
 
@@ -18,13 +18,13 @@ describe("Batch is usable", () => {
                 resultsOut.add(r[0])
             })
         }
-        await TestHelper.pause(100)
+        await new Timeout(100)
         assert.equal(resultsOut.size, 0, "No results yet")
         await batch.finish()
         if(debug) {
             console.log("Finish complete")
         }
-        await TestHelper.pause(0)
+        await new Timeout(0)
         assert.equal(resultsOut.size, 20, "All results in")
     })
     describe("With a time limit", () => {
@@ -36,7 +36,7 @@ describe("Batch is usable", () => {
                 assert.equal(result.remaining, 0, `Item ${i} is accepted`)
                 result.promise.then(r => {resultsOut.add(r[0]); resultsOut.add(r[1])})
             }
-            await TestHelper.pause(100)
+            await new Timeout(100)
             assert.equal(resultsOut.size, 20, "All results in")
         })
         it("runs normally when all items are added serially", async () => {
@@ -46,9 +46,9 @@ describe("Batch is usable", () => {
                 const result = batch.add(i, i + 1)
                 assert.equal(result.remaining, 0, `Item ${i} is accepted`)
                 result.promise.then(r => {resultsOut.add(r[0]); resultsOut.add(r[1])})
-                await TestHelper.pause(5) // Might be a bit more
+                await new Timeout(5) // Might be a bit more
             }
-            await TestHelper.pause(25)
+            await new Timeout(25)
             assert.equal(resultsOut.size, 10, "All results in")
             const result = batch.add(10)
             assert.equal(result.remaining, 1, "Items after timeout are not accepted")
@@ -61,10 +61,10 @@ describe("Batch is usable", () => {
                 assert.equal(result.remaining, 0, `Item ${i} is accepted`)
                 result.promise.then(r => {resultsOut.add(r[0]); resultsOut.add(r[1])})
             }
-            await TestHelper.pause(100)
+            await new Timeout(100)
             assert.equal(resultsOut.size, 0, "No results in while delayed")
             batch.delay = false
-            await TestHelper.pause(5) // Arbitrary short delay
+            await new Timeout(5) // Arbitrary short delay
             assert.equal(resultsOut.size, 20, "All results in")
         })
     })

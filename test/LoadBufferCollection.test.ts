@@ -1,7 +1,7 @@
+import { Timeout } from "@jdframe/core"
 import { BatchFitCount } from "@jdframe/selection-buffer"
 import * as assert from "assert"
 import { LoadBufferCollection } from "../src"
-import { TestHelper } from "./TestHelper"
 
 describe("Load buffer collections", () => {
     it("can handle basic buffering duties", async () => {
@@ -42,7 +42,7 @@ describe("Load buffer collections", () => {
         assert.ok(error instanceof Object, "An exception was thrown on late remove")
 
         await buffer
-        await TestHelper.pause(10)
+        await new Timeout(10)
         assert.equal(result.size, 10, "Expected results were stored")
         assert.ok(result.has(2), "Included item exists")
     })

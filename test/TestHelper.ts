@@ -9,16 +9,4 @@ export class TestHelper {
     static comparableResults(results: Map<string, string>) {
         return [...results].sort(([a], [b]) => a.localeCompare(b))
     }
-    /**
-     *
-     * @param milliseconds
-     */
-    static async pause(milliseconds: number) {
-        if(this.debug) console.log(`Pause: ${milliseconds}ms`)
-        try {
-            await new Promise(resolve => setTimeout(resolve, milliseconds))
-        } finally {
-            if(this.debug) console.log("Pause finished")
-        }
-    }
 }

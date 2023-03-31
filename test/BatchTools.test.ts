@@ -1,6 +1,7 @@
+import { Timeout } from "@jdframe/core"
 import { BatchFitCount } from "@jdframe/selection-buffer"
 import * as assert from "assert"
-import {BatchTools} from "../src"
+import { BatchTools } from "../src"
 import { TestHelper } from "./TestHelper"
 
 const debug = false
@@ -96,19 +97,19 @@ describe("Batch tools are usable", () => {
         const testWrapper = new BatchToolTestWrapper(consumer.fooBatchedTimeout)
         testWrapper.trySingleCall("a")
         testWrapper.tryMultiCall("b", "c")
-        await TestHelper.pause(preferredTimeout * 2 / 5)
+        await new Timeout(preferredTimeout * 2 / 5)
         // t+20, no call
         testWrapper.trySingleCall("d")
         testWrapper.tryMultiCall("e", "f")
-        await TestHelper.pause(preferredTimeout * 2 / 5)
+        await new Timeout(preferredTimeout * 2 / 5)
         // t+40, no call
         testWrapper.trySingleCall("g")
         testWrapper.tryMultiCall("h", "i")
-        await TestHelper.pause(preferredTimeout * 2 / 5)
+        await new Timeout(preferredTimeout * 2 / 5)
         // t+60, call 1 fired
         testWrapper.trySingleCall("j")
         testWrapper.tryMultiCall("k", "l")
-        await TestHelper.pause(300)
+        await new Timeout(300)
         // t+360, both calls fired and returned
 
         assert.equal(consumer.callCount, 2, "Expected number of calls made")
@@ -125,17 +126,17 @@ describe("Batch tools are usable", () => {
         // More than 10!
         testWrapper.tryMultiCall(...items.slice(0, 5))
         testWrapper.tryMultiCall(...items.slice(5))
-        await TestHelper.pause(preferredTimeout * 2 / 5)
+        await new Timeout(preferredTimeout * 2 / 5)
         // t+20, one call made and another one in the backlog.
         assert.equal(consumer.callCount, 4, "Four calls made immediately")
         assert.ok((consumer.fooBatchedLimit.lastActiveBatchSize ?? 0) < 5, "The active batch is small & incomplete")
-        await TestHelper.pause(preferredTimeout * 4 / 5)
+        await new Timeout(preferredTimeout * 4 / 5)
         // t+60, two calls made
         assert.equal(consumer.callCount, 5, "Five calls made after 1x timeout")
-        await TestHelper.pause(80)
+        await new Timeout(80)
         // t+140, one call completed
         assert.equal(testWrapper.results.size, 13, "Some results are in")
-        await TestHelper.pause(100)
+        await new Timeout(100)
         // t+250, all calls completed
         assert.equal(testWrapper.results.size, items.length, "All results are in")
 
@@ -149,25 +150,25 @@ describe("Batch tools are usable", () => {
         const testWrapper = new BatchToolTestWrapper(consumer.fooBatchedManual)
         testWrapper.trySingleCall("a")
         testWrapper.tryMultiCall("b", "c")
-        await TestHelper.pause(20)
+        await new Timeout(20)
         // t+20, no call
         testWrapper.trySingleCall("d")
         testWrapper.tryMultiCall("e", "f")
-        await TestHelper.pause(20)
+        await new Timeout(20)
         // t+40, no call
         testWrapper.trySingleCall("g")
         testWrapper.tryMultiCall("h", "i")
-        await TestHelper.pause(20)
+        await new Timeout(20)
         // t+60, still no call
         testWrapper.trySingleCall("j")
         testWrapper.tryMultiCall("k", "l")
-        await TestHelper.pause(300)
+        await new Timeout(300)
         // t+360, still no call.
 
         assert.equal(consumer.callCount, 0, "No calls made in advance")
         consumer.fooBatchedManual.send()
 
-        await TestHelper.pause(150) // Wait long enough for it to finish
+        await new Timeout(150) // Wait long enough for it to finish
 
         assert.equal(consumer.callCount, 1, "Expected number of calls made")
         assert.deepEqual(TestHelper.comparableResults(testWrapper.results), TestHelper.expectedResults("abcdefghijkl"), "Results match")
@@ -184,19 +185,19 @@ describe("Batch tools are usable", () => {
             // More than 10!
             testWrapper.tryMultiCall(...items.slice(0, 3)) // 0 1 2
             testWrapper.tryMultiCall(...items.slice(3, 7)) // 3 4 5 6
-            await TestHelper.pause(5)
+            await new Timeout(5)
             // t+5: At this point we have three complete batches (a, b), (c, d), (e,
             // f) and one incomplete batch (g). Only the first two batches will have
             // been sent, because that's the limit.
             assert.equal(consumer.callCount, 2, "Expected number of calls made")
-            await TestHelper.pause(preferredTimeout * 1.1)
+            await new Timeout(preferredTimeout * 1.1)
             // t+60: The fourth batch became available, but was not sent.
             assert.equal(consumer.callCount, 2, "Expected number of calls made (no change)")
-            await TestHelper.pause(50)
+            await new Timeout(50)
             // t+110: Results from the first two batches, last two batches are sent.
             assert.equal(consumer.callCount, 4, "All calls made")
             assert.equal(testWrapper.results.size, 3, "Partial results in - one response for two batches")
-            await TestHelper.pause(100)
+            await new Timeout(100)
             // t+210: All results in
 
             assert.deepEqual(TestHelper.comparableResults(testWrapper.results), TestHelper.expectedResults("abcdefg"), "Results match")
@@ -212,9 +213,9 @@ describe("Batch tools are usable", () => {
             const testWrapper = new BatchToolTestWrapper(consumer.fooBatchedTimeout)
             testWrapper.tryIterableBatchCall("a", "b")
             testWrapper.tryIterableBatchCall("c", "d", "e")
-            await TestHelper.pause(60)
+            await new Timeout(60)
             // t+60, call added
-            await TestHelper.pause(60)
+            await new Timeout(60)
             // t+120, batch 1 finished
             assert.equal(consumer.callCount, 1, "Expected number of calls made")
             assert.equal(testWrapper.results.size, 5, "All results are in")
@@ -229,18 +230,18 @@ describe("Batch tools are usable", () => {
             const testWrapper = new BatchToolTestWrapper(consumer.fooBatchedLimit)
             testWrapper.tryIterableBatchCall("a", "b")
             testWrapper.tryIterableBatchCall("c", "d", "e")
-            await TestHelper.pause(5)
+            await new Timeout(5)
             // t+5, one call issued.
             assert.equal(consumer.callCount, 1, "Expected number of calls made")
 
-            await TestHelper.pause(55)
+            await new Timeout(55)
             // t+60, one call finished, another added.
             assert.equal(consumer.callCount, 2, "Expected number of calls made")
             assert.equal(testWrapper.results.size, 3, "All initial results are in")
 
             assert.deepEqual(TestHelper.comparableResults(testWrapper.results), TestHelper.expectedResults("abc"), "Results match (initial)")
 
-            await TestHelper.pause(60)
+            await new Timeout(60)
             // t+120, both calls finished
             assert.equal(consumer.callCount, 2, "Expected number of calls made")
             assert.equal(testWrapper.results.size, 5, "All results are in")
@@ -255,18 +256,18 @@ describe("Batch tools are usable", () => {
             const testWrapper = new BatchToolTestWrapper(consumer.fooBatchedLimit)
             testWrapper.tryIterableSingleCall("a", "b")
             testWrapper.tryIterableSingleCall("c", "d", "e")
-            await TestHelper.pause(5)
+            await new Timeout(5)
             // t+5, one call issued.
             assert.equal(consumer.callCount, 1, "Expected number of calls made")
 
-            await TestHelper.pause(55)
+            await new Timeout(55)
             // t+60, one call finished, another added.
             assert.equal(consumer.callCount, 2, "Expected number of calls made")
             assert.equal(testWrapper.results.size, 3, "All initial results are in")
 
             assert.deepEqual(TestHelper.comparableResults(testWrapper.results), TestHelper.expectedResults("abc"), "Results match (initial)")
 
-            await TestHelper.pause(60)
+            await new Timeout(60)
             // t+120, both calls finished
             assert.equal(consumer.callCount, 2, "Expected number of calls made")
             assert.equal(testWrapper.results.size, 5, "All results are in")
