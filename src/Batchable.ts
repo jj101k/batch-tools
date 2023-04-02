@@ -1,5 +1,6 @@
 /**
- *
+ * This is for a batch system which accepts items of type I and promises to
+ * return results of type O.
  */
 export interface Batchable<I, O> {
     /**
