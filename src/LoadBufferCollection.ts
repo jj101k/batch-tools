@@ -1,5 +1,5 @@
 import { BatchSendCondition, SelectionBuffer } from "@jdframe/selection-buffer"
-import { MultiBatchable } from "./MultiBatchable"
+import { Batchable } from "./Batchable"
 
 /**
  *
@@ -24,7 +24,7 @@ interface LoadResultBuffer<K, R> {
  * This can safely be filled, allowed to drain, then refilled. For that reason
  * it doesn't have a promise interface.
  */
-export class LoadBufferCollection<I, O> implements MultiBatchable<I, O> {
+export class LoadBufferCollection<I, O> implements Batchable<I, O> {
     /**
      *
      */

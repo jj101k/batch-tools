@@ -2,7 +2,7 @@ import { Debuggable } from "@jdframe/core"
 import { BatchSendCondition, SelectionErrors } from "@jdframe/selection-buffer"
 import { Batch } from "./LowLevel/Batch"
 import { BatchState } from "./LowLevel/BatchState"
-import { MultiBatchable } from "./MultiBatchable"
+import { Batchable } from "./Batchable"
 
 /**
  * @see Batch for lower-level functionality.
@@ -22,7 +22,7 @@ import { MultiBatchable } from "./MultiBatchable"
  * You can use this if you expect to fill a  limited-size buffer immediately and
  * want those first results ASAP rather than after a timeout.
  */
-export class BatchTools<I, O> extends Debuggable implements MultiBatchable<I, O> {
+export class BatchTools<I, O> extends Debuggable implements Batchable<I, O> {
     /**
      * Batches which are no longer accepting entries, ie ready to send or later.
      * This includes ones which are simply not finished yet.

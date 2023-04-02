@@ -1,7 +1,7 @@
 /**
  *
  */
-export interface MultiBatchable<I, O> {
+export interface Batchable<I, O> {
     /**
      * Halts all operations in progress, emitting errors as appropriate.
      * Primarily of interest for testing.
