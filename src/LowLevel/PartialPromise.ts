@@ -1,7 +1,9 @@
 /**
- * Some work handled by a promise, some not.
+ * An expression that some work is promised to be done via a method, and some is
+ * _not_, ie you need to make separate arrangements (eg. a new object) for some
+ * of the work.
  */
-export interface PartialPromise<P> {
+export interface PartialPromise<P extends Array<any>> {
     /**
      * The promise used
      */

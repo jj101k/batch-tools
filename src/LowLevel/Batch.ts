@@ -19,35 +19,55 @@ export class Batch<I, O> extends ExtensiblePromise<O[]> implements Batchable<I, 
     /**
      *
      */
-    private _intState: BatchState = BatchState.Initial
-
-    /**
-     *
-     */
     private selectionBuffer: SelectionBuffer<I>
 
     /**
-     * The internal state. Unlike the external view of the same, this is
-     * writeable.
+     *
      */
-    private get intState() {
-        return this._intState
+    private storedInternalState: BatchState = BatchState.Initial
+
+    /**
+     * The internal state. Unlike the external view of the same, this is
+     * writeable, but may only move forward.
+     *
+     * This will implicitly move forward if the selection buffer is ready and
+     * the current state is not yet ready-to-send.
+     */
+    private get internalState() {
+        if(this.storedInternalState < BatchState.ReadyToSend && this.selectionBuffer.ready) {
+            this.storedInternalState = BatchState.ReadyToSend
+        }
+        return this.storedInternalState
     }
 
     /**
      *
      */
-    private set intState(v) {
-        if (v == this._intState) {
+    private set internalState(v) {
+        if (v == this.storedInternalState) {
             return // Nothing to do
-        } else if (v < this._intState) {
+        } else if (v < this.storedInternalState) {
             throw new SelectionErrors.InvalidState("State may only move forwards")
         }
-        this._intState = v
+        this.storedInternalState = v
     }
 
     /**
      *
+     * @param offset
+     * @param length
+     * @returns
+     */
+    private async slicePromise(offset: number, length: number) {
+        const results = await this.promise
+        if(this.internalState == BatchState.Aborted) {
+            throw new Errors.Cancelled()
+        }
+        return results.slice(offset, offset + length)
+    }
+
+    /**
+     * A promise which will resolve with the full set of batch results
      */
     protected promise: Promise<O[]>
 
@@ -59,9 +79,9 @@ export class Batch<I, O> extends ExtensiblePromise<O[]> implements Batchable<I, 
     }
 
     /**
-     * Whether the batch has been delayed. This can be set to false at any time,
-     * and will send the batch if it's already met its criteria. Setting this to
-     * true after the batch is sent has no effect.
+     * Whether the batch has been delayed. Setting this to false will send the
+     * batch if it's already met its criteria. Setting this to true after the
+     * batch is sent has no effect.
      */
     get delay() {
         return this.selectionBuffer.delay
@@ -72,8 +92,8 @@ export class Batch<I, O> extends ExtensiblePromise<O[]> implements Batchable<I, 
      */
     set delay(v) {
         this.selectionBuffer.delay = v
-        if (this.intState == BatchState.ReadyToSend && !v) {
-            this.intState = BatchState.Sent
+        if (this.internalState == BatchState.ReadyToSend && !v) {
+            this.internalState = BatchState.Sent
         }
     }
 
@@ -88,40 +108,37 @@ export class Batch<I, O> extends ExtensiblePromise<O[]> implements Batchable<I, 
      *
      */
     get state() {
-        if(this.intState < BatchState.ReadyToSend && this.selectionBuffer.ready) {
-            return BatchState.ReadyToSend
-        }
-        return this.intState
+        return this.internalState
     }
 
     /**
      *
-     * @param func The worker which will handle the batch when ready
-     * @param sendCondition
+     * @param worker The worker which will handle the batch when ready
+     * @param sendCondition If not set, it should be immediately a candidate to send
      * @param delay If concurrently true, the batch will not be finished even
      * after triggering its condition. For size-limited batches, that means it
      * will not permit further additions; for time-limited batches, this makes
      * it effectively condition-limited. Set "delay" to false when no longer
      * needed.
      */
-    constructor(func: (...ts: I[]) => Promise<O[]>,
+    constructor(worker: (...ts: I[]) => Promise<O[]>,
         sendCondition?: BatchSendCondition<I>, delay = false
     ) {
         super()
+
         this.selectionBuffer = new SelectionBuffer<I>(sendCondition, delay)
-        this.promise = this.selectionBuffer.then(
-            async backlog => {
-                this._intState = BatchState.Sent
-                this.debugLog("Selection resolved with buffer", backlog)
-                const results = await func(...backlog)
-                if(this.intState == BatchState.Aborted) {
-                    throw new Error("Aborted")
-                }
-                return results
+
+        this.promise = this.selectionBuffer.then(async backlog => {
+            this.storedInternalState = BatchState.Sent
+            this.debugLog("Selection resolved with buffer", backlog)
+            const results = await worker(...backlog)
+            if(this.internalState == BatchState.Aborted) {
+                throw new Error("Aborted")
             }
-        ).finally(() => {
+            return results
+        }).finally(() => {
             this.debugLog("Post-resolve")
-            this.intState = BatchState.Finished
+            this.internalState = BatchState.Finished
         })
     }
 
@@ -129,9 +146,9 @@ export class Batch<I, O> extends ExtensiblePromise<O[]> implements Batchable<I, 
      * Stops the process.
      */
     abort() {
-        if(this.intState < BatchState.Finished) {
+        if(this.internalState < BatchState.Finished) {
             this.debugLog("Aborting buffer")
-            this._intState = BatchState.Aborted
+            this.storedInternalState = BatchState.Aborted
             this.selectionBuffer.abort()
         }
     }
@@ -145,7 +162,7 @@ export class Batch<I, O> extends ExtensiblePromise<O[]> implements Batchable<I, 
      */
     add(...items: I[]): PartialPromise<O[]> {
         this.debugLog("Add")
-        if (this.intState > BatchState.ReadyToSend) {
+        if (this.internalState > BatchState.ReadyToSend) {
             this.debugLog("Cannot add")
             return {
                 promise: Promise.resolve([]),
@@ -153,22 +170,16 @@ export class Batch<I, O> extends ExtensiblePromise<O[]> implements Batchable<I, 
             }
         }
 
-        this.intState = BatchState.Waiting
+        this.internalState = BatchState.Waiting
 
         // TODO adjust this to use a sparse array to detect removed items
 
         const offset = this.selectionBuffer.size
-        const promise = this.promise.then(results => {
-            if(this.intState == BatchState.Aborted) {
-                throw new Errors.Cancelled()
-            }
-            return results.slice(offset, offset + items.length)
-        })
 
         const remainingLength = this.selectionBuffer.add(...items)
         this.debugLog(`Loaded with ${remainingLength} remaining`)
         return {
-            promise,
+            promise: this.slicePromise(offset, items.length),
             remaining: remainingLength,
         }
     }
