@@ -7,6 +7,34 @@ individual calls to something that takes a while - something that returns a
 promise - but from a _program_ perspective you want them to be grouped together.
 This provides a solution to that, with limitations.
 
+# Guideline
+
+You probably want to do:
+
+```js
+import {Decorator as PSLL} from "promise-stateful-lazy-loader"
+
+@PSLL.lazyStates()
+class DecoratedClass {
+    readonly buffer = new LoadBufferCollection(this.simpleBatchFunction.bind(this), {timeoutMs: 5})
+
+    @PSLL.lazyState(() => getFoo("bar"))
+    bar!: string
+
+    getFoo(bar) {
+        if(this.cache[bar] === undefined) {
+            this.cache[bar] = null
+            buffer.add(bar).then(r => this.cache[bar] = r, e => {console.error(e)})
+        }
+        return this.cache[bar]
+    }
+
+    simpleBatchFunction(items: string[]) {
+        return fetch("/bar?" + items.join("+"))
+    }
+}
+```
+
 # Things You Can Do Here
 
 1. Combine a series of separate calls into one back-end call. This is for things which
