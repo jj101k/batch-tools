@@ -13,6 +13,7 @@ You probably want to do:
 
 ```js
 import {Decorator as PSLL} from "promise-stateful-lazy-loader"
+import {LoadBufferCollection} from "batch-tools"
 
 @PSLL.lazyStates()
 class DecoratedClass {
@@ -24,7 +25,7 @@ class DecoratedClass {
     getFoo(bar) {
         if(this.cache[bar] === undefined) {
             this.cache[bar] = null
-            buffer.add(bar).then(r => this.cache[bar] = r, e => {console.error(e)})
+            this.buffer.add(bar).then(r => this.cache[bar] = r, e => {console.error(e)})
         }
         return this.cache[bar]
     }
