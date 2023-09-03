@@ -179,7 +179,7 @@ export class Batch<I, O> extends ExtensiblePromise<O[]> implements Batchable<I, 
         const remainingLength = this.selectionBuffer.add(...items)
         this.debugLog(`Loaded with ${remainingLength} remaining`)
         return {
-            promise: this.slicePromise(offset, items.length),
+            promise: this.slicePromise(offset, items.length - remainingLength),
             remaining: remainingLength,
         }
     }
