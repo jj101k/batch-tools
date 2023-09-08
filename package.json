@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/jj101k/batch-tools#readme",
   "devDependencies": {
+    "@jdframe/selection-buffer": "github:jj101k/jdframe-selection-buffer#v1.1.1",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.10.3",
     "mocha": "^9.1.2",
@@ -26,7 +27,6 @@
     "typescript": "^4.4.3"
   },
   "dependencies": {
-    "@jdframe/core": "github:jj101k/jdframe-core#v1.1.2",
-    "@jdframe/selection-buffer": "github:jj101k/jdframe-selection-buffer#v1.1.0"
+    "@jdframe/core": "github:jj101k/jdframe-core#v1.1.3"
   }
 }

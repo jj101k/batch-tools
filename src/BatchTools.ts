@@ -22,7 +22,7 @@ import { Batchable } from "./Batchable"
  * You can use this if you expect to fill a  limited-size buffer immediately and
  * want those first results ASAP rather than after a timeout.
  */
-export class BatchTools<I, O> extends Debuggable implements Batchable<I, O> {
+export class BatchTools<I, O extends OX, OX = O | undefined> extends Debuggable implements Batchable<I, OX> {
     /**
      * Batches which are no longer accepting entries, ie ready to send or later.
      * This includes ones which are simply not finished yet.
@@ -41,8 +41,8 @@ export class BatchTools<I, O> extends Debuggable implements Batchable<I, O> {
      * this is guaranteed.
      */
     private get activeBatch() {
-        if(!this.lastActiveBatch?.canAdd) {
-            if(this.lastActiveBatch) {
+        if (!this.lastActiveBatch?.canAdd) {
+            if (this.lastActiveBatch) {
                 this.debugLog("Pushing non-add active batch")
                 this.batches.push(this.lastActiveBatch)
             }
@@ -66,19 +66,19 @@ export class BatchTools<I, O> extends Debuggable implements Batchable<I, O> {
         // Clean out any no-longer-interesting batches.
         this.batches = this.batches.filter(batch => batch.state < BatchState.Finished)
 
-        if(this.batches.length > 0) {
+        if (this.batches.length > 0) {
             this.debugLog(`Considering enable at ${this.batches.length} of ${this.parallelLimit}`)
         }
 
-        if(this.batches.length <= this.parallelLimit) {
-            for(const batch of this.batches) {
+        if (this.batches.length <= this.parallelLimit) {
+            for (const batch of this.batches) {
                 batch.delay = false
             }
-            if(this.batches.length < this.parallelLimit && this.lastActiveBatch) {
+            if (this.batches.length < this.parallelLimit && this.lastActiveBatch) {
                 this.lastActiveBatch.delay = false
             }
         } else {
-            for(const batch of this.batches.slice(0, this.parallelLimit)) {
+            for (const batch of this.batches.slice(0, this.parallelLimit)) {
                 batch.delay = false
             }
         }
@@ -94,12 +94,12 @@ export class BatchTools<I, O> extends Debuggable implements Batchable<I, O> {
      * @returns An array of promises to be handled as appropriate.
      */
     protected getBatchPromises(...items: I[]) {
-        const promises: Promise<O[]>[] = []
-        while(items.length) {
+        const promises: Promise<OX[]>[] = []
+        while (items.length) {
             const batch = this.activeBatch
             const result = batch.add(...items)
-            if(result.remaining < items.length) {
-                if(this.parallelLimit == Infinity) {
+            if (result.remaining < items.length) {
+                if (this.parallelLimit == Infinity) {
                     promises.push(result.promise)
                 } else {
                     promises.push(result.promise.finally(() => this.enableBatches()))
@@ -135,7 +135,7 @@ export class BatchTools<I, O> extends Debuggable implements Batchable<I, O> {
 
     abort() {
         this.debugLog("Abort, stopping all batches")
-        for(const batch of this.batches) {
+        for (const batch of this.batches) {
             batch.abort()
         }
         this.batches = []
@@ -153,9 +153,9 @@ export class BatchTools<I, O> extends Debuggable implements Batchable<I, O> {
      * @param items
      * @returns
      */
-    async callMulti(...items: I[]): Promise<O[]> {
-        const out: O[] = []
-        for(const promise of this.getBatchPromises(...items)) {
+    async callMulti(...items: I[]): Promise<OX[]> {
+        const out: OX[] = []
+        for (const promise of this.getBatchPromises(...items)) {
             out.push(...(await promise))
         }
         return out
@@ -168,8 +168,8 @@ export class BatchTools<I, O> extends Debuggable implements Batchable<I, O> {
      * @param ts
      * @returns
      */
-    async *callMultiIterableBatch(...ts: I[]): AsyncIterable<O[]> {
-        for(const promise of this.getBatchPromises(...ts)) {
+    async *callMultiIterableBatch(...ts: I[]): AsyncIterable<OX[]> {
+        for (const promise of this.getBatchPromises(...ts)) {
             yield await promise
         }
     }
@@ -185,9 +185,9 @@ export class BatchTools<I, O> extends Debuggable implements Batchable<I, O> {
      * @param ts
      * @returns
      */
-    async *callMultiIterableSingle(...ts: I[]): AsyncIterable<O> {
-        for(const promise of this.getBatchPromises(...ts)) {
-            for(const v of await promise) {
+    async *callMultiIterableSingle(...ts: I[]): AsyncIterable<OX> {
+        for (const promise of this.getBatchPromises(...ts)) {
+            for (const v of await promise) {
                 yield v
             }
         }
@@ -202,7 +202,7 @@ export class BatchTools<I, O> extends Debuggable implements Batchable<I, O> {
      * @param item
      * @returns
      */
-    async include(item: I): Promise<O> {
+    async include(item: I): Promise<OX> {
         const [promise] = this.getBatchPromises(item)
         const result = await promise
         return result[0]
@@ -214,7 +214,7 @@ export class BatchTools<I, O> extends Debuggable implements Batchable<I, O> {
      * work has already been loaded.
      */
     send() {
-        if(this.lastActiveBatch) {
+        if (this.lastActiveBatch) {
             this.debugLog("Send - finish")
             this.lastActiveBatch.finish()
             this.batches.push(this.lastActiveBatch)

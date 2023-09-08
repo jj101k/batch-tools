@@ -62,7 +62,7 @@ class BatchToolTestWrapper {
             if(debug) console.log(`Storing ${rs.length} results`)
             for(const [i, r] of Object.entries(rs)) {
                 if(debug) console.log(`Storing ${ns[offset + +i]}=${r}`)
-                this.results.set(ns[offset + +i]!, r)
+                this.results.set(ns[offset + +i]!, r!)
             }
             offset += rs.length
         }
@@ -71,7 +71,7 @@ class BatchToolTestWrapper {
         let i = 0
         for await (const r of this.batchTools.callMultiIterableSingle(...ns)) {
             if(debug) console.log(`Storing 1 result, ${ns[+i]}=${r}`)
-            this.results.set(ns[+i]!, r)
+            this.results.set(ns[+i]!, r!)
             i++
         }
     }
@@ -80,13 +80,13 @@ class BatchToolTestWrapper {
         const rs = await this.batchTools.callMulti(...ns)
         if(debug) console.log(`Storing ${rs.length} results`)
         for(const [i, r] of Object.entries(rs)) {
-            this.results.set(ns[+i]!, r)
+            this.results.set(ns[+i]!, r!)
         }
     }
     async trySingleCall(n: string) {
         const r = await this.batchTools.include(n)
         if(debug) console.log("Storing 1 result")
-        this.results.set(n, r)
+        this.results.set(n, r!)
     }
 }
 
